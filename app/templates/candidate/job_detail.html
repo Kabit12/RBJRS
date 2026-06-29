@@ -1,0 +1,95 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block page_title %}{{ job.title }}{% endblock %}
+{% block page_subtitle %}{{ job.recruiter.company_name }}{% if job.location %} · {{ job.location }}{% endif %}{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:1.5rem;">
+    <!-- Job Details -->
+    <div>
+        <div class="card mb-6 animate-in">
+            <div class="flex gap-4 mb-6" style="flex-wrap:wrap;">
+                {% if job.job_type %}<span class="badge badge-primary">{{ job.job_type }}</span>{% endif %}
+                {% if job.experience_level %}<span class="badge badge-neutral">{{ job.experience_level }}</span>{% endif %}
+                {% if job.salary_range %}<span class="badge badge-success">💰 {{ job.salary_range }}</span>{% endif %}
+                {% if job.classified_category %}<span class="badge badge-warning">{{ job.classified_category }}</span>{% endif %}
+            </div>
+            <h4 class="mb-4">Description</h4>
+            <p class="text-sm" style="white-space:pre-line; color:var(--color-text-secondary);">{{ job.description }}</p>
+            {% if job.requirements %}
+            <h4 class="mt-6 mb-4">Requirements</h4>
+            <p class="text-sm" style="white-space:pre-line; color:var(--color-text-secondary);">{{ job.requirements }}</p>
+            {% endif %}
+            {% if job.responsibilities %}
+            <h4 class="mt-6 mb-4">Responsibilities</h4>
+            <p class="text-sm" style="white-space:pre-line; color:var(--color-text-secondary);">{{ job.responsibilities }}</p>
+            {% endif %}
+            {% set skills = job.required_skills.all() %}
+            {% if skills %}
+            <h4 class="mt-6 mb-4">Required Skills</h4>
+            <div class="skill-tags">
+                {% for js in skills %}<span class="skill-tag">{{ js.skill.name if js.skill else 'Unknown' }}</span>{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar: Match & Apply -->
+    <div>
+        {% if recommendation %}
+        <div class="card mb-6 animate-in animate-in-delay-1">
+            <h4 class="mb-4">🎯 Your Match Score</h4>
+            <div class="text-center mb-4">
+                <div style="font-size:3rem; font-weight:800; color:{{ 'var(--color-accent-cyan)' if recommendation.overall_score >= 0.7 else ('var(--color-accent-yellow)' if recommendation.overall_score >= 0.4 else 'var(--color-accent-red)') }};">
+                    {{ (recommendation.overall_score * 100)|round(1) }}%
+                </div>
+                <div class="text-sm text-muted">{{ recommendation.score_label }}</div>
+            </div>
+            <div class="mb-4">
+                <div class="flex justify-between text-xs mb-2"><span>Skills</span><span>{{ ((recommendation.skill_score or 0) * 100)|round(0) }}%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" style="width:{{ (recommendation.skill_score or 0) * 100 }}%"></div></div>
+            </div>
+            <div class="mb-4">
+                <div class="flex justify-between text-xs mb-2"><span>Education</span><span>{{ ((recommendation.education_score or 0) * 100)|round(0) }}%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill green" style="width:{{ (recommendation.education_score or 0) * 100 }}%"></div></div>
+            </div>
+            <div class="mb-4">
+                <div class="flex justify-between text-xs mb-2"><span>Experience</span><span>{{ ((recommendation.experience_score or 0) * 100)|round(0) }}%</span></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill orange" style="width:{{ (recommendation.experience_score or 0) * 100 }}%"></div></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Apply -->
+        <div class="card animate-in animate-in-delay-2">
+            {% if existing_application %}
+            <div class="text-center">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">✅</div>
+                <p class="font-semibold">Application Submitted</p>
+                <p class="text-sm text-muted">Status: <span class="badge badge-{{ 'success' if existing_application.status == 'accepted' else 'primary' }}">{{ existing_application.status_display }}</span></p>
+            </div>
+            {% else %}
+            <h4 class="mb-4">Apply for this Job</h4>
+            <form method="POST" action="{{ url_for('candidate.apply_job', job_id=job.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label class="form-label">Cover Letter (optional)</label>
+                    <textarea name="cover_letter" class="form-control" rows="4" placeholder="Tell the recruiter why you're a great fit..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Submit Application</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

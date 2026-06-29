@@ -1,0 +1,51 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Manage Jobs{% endblock %}
+{% block page_title %}💼 Job Management{% endblock %}
+{% block page_subtitle %}View and manage all job postings across the platform.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Administration</div>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link"><span class="icon">👥</span> Users</a>
+    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link active"><span class="icon">💼</span> Jobs</a>
+    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link"><span class="icon">📈</span> Analytics</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+{% if jobs.items %}
+<div class="table-container animate-in">
+    <table class="table">
+        <thead><tr><th>Title</th><th>Company</th><th>Category</th><th>Applicants</th><th>Status</th><th>Posted</th><th>Action</th></tr></thead>
+        <tbody>
+            {% for job in jobs.items %}
+            <tr>
+                <td class="font-semibold">{{ job.title }}</td>
+                <td class="text-muted">{{ job.recruiter.company_name }}</td>
+                <td><span class="badge badge-primary">{{ job.classified_category or 'N/A' }}</span></td>
+                <td>{{ job.applicant_count }}</td>
+                <td><span class="badge badge-{{ 'success' if job.is_active else 'neutral' }}">{{ 'Active' if job.is_active else 'Inactive' }}</span></td>
+                <td class="text-muted text-sm">{{ job.posted_at.strftime('%b %d, %Y') if job.posted_at else 'N/A' }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('admin.toggle_job', job_id=job.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-{{ 'warning' if job.is_active else 'success' }} btn-sm">{{ 'Deactivate' if job.is_active else 'Activate' }}</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if jobs.pages > 1 %}
+<div class="pagination">
+    {% for page_num in jobs.iter_pages() %}
+        {% if page_num %}
+        <a href="{{ url_for('admin.manage_jobs', page=page_num) }}" class="page-link {{ 'active' if page_num == jobs.page else '' }}">{{ page_num }}</a>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

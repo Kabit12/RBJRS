@@ -1,0 +1,82 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Applicants — {{ job.title }}{% endblock %}
+{% block page_title %}📋 Applicants for "{{ job.title }}"{% endblock %}
+{% block page_subtitle %}{{ applications|length }} applications received. Candidates ranked by AI match score.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Applications Table -->
+{% if applications %}
+<div class="card mb-6 animate-in">
+    <div class="card-header"><h3 class="card-title">Applications</h3></div>
+    <div class="table-container">
+        <table class="table">
+            <thead><tr><th>Candidate</th><th>Match Score</th><th>Status</th><th>Applied</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>
+                        <span class="font-semibold">{{ app.candidate.user.full_name if app.candidate and app.candidate.user else 'N/A' }}</span>
+                        <br><span class="text-xs text-muted">{{ app.candidate.user.email if app.candidate and app.candidate.user else '' }}</span>
+                    </td>
+                    <td>{% if app.match_score %}<span class="badge badge-{{ 'success' if app.match_score >= 0.7 else ('warning' if app.match_score >= 0.4 else 'danger') }}">{{ (app.match_score * 100)|round(1) }}%</span>{% else %}N/A{% endif %}</td>
+                    <td><span class="badge badge-{{ 'success' if app.status == 'accepted' else ('primary' if app.status == 'shortlisted' else ('warning' if app.status in ['pending','reviewed'] else 'danger')) }}">{{ app.status_display }}</span></td>
+                    <td class="text-muted text-sm">{{ app.applied_at.strftime('%b %d, %Y') if app.applied_at else 'N/A' }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('recruiter.update_application_status', app_id=app.id) }}" class="flex gap-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select name="status" class="form-control" style="width:auto; padding:0.25rem 0.5rem; font-size:0.75rem;">
+                                <option value="pending" {{ 'selected' if app.status == 'pending' else '' }}>Pending</option>
+                                <option value="reviewed" {{ 'selected' if app.status == 'reviewed' else '' }}>Reviewed</option>
+                                <option value="shortlisted" {{ 'selected' if app.status == 'shortlisted' else '' }}>Shortlisted</option>
+                                <option value="accepted" {{ 'selected' if app.status == 'accepted' else '' }}>Accepted</option>
+                                <option value="rejected" {{ 'selected' if app.status == 'rejected' else '' }}>Rejected</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card mb-6 animate-in"><div class="empty-state">
+    <div class="icon">📋</div><div class="title">No Applications Yet</div>
+    <div class="description">No candidates have applied for this position yet.</div>
+</div></div>
+{% endif %}
+
+<!-- AI-Ranked Candidates -->
+{% if ranked_candidates %}
+<div class="card animate-in animate-in-delay-1">
+    <div class="card-header"><h3 class="card-title">🤖 AI-Ranked Candidates</h3></div>
+    <p class="text-sm text-muted mb-4">All candidates ranked by our AI matching engine based on their resumes.</p>
+    <div class="table-container">
+        <table class="table">
+            <thead><tr><th>#</th><th>Candidate</th><th>Overall</th><th>Skills</th><th>Education</th><th>Experience</th></tr></thead>
+            <tbody>
+                {% for rc in ranked_candidates %}
+                <tr>
+                    <td class="font-semibold">{{ loop.index }}</td>
+                    <td>{{ rc.user.full_name }}<br><span class="text-xs text-muted">{{ rc.user.email }}</span></td>
+                    <td><span class="badge badge-{{ 'success' if rc.overall_score >= 0.7 else ('warning' if rc.overall_score >= 0.4 else 'danger') }}">{{ (rc.overall_score * 100)|round(1) }}%</span></td>
+                    <td>{{ (rc.skill_score * 100)|round(0) }}%</td>
+                    <td>{{ (rc.education_score * 100)|round(0) }}%</td>
+                    <td>{{ (rc.experience_score * 100)|round(0) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

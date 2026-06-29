@@ -1,0 +1,138 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Welcome back, {{ current_user.first_name }}! 👋{% endblock %}
+{% block page_subtitle %}Your candidate dashboard — track your resume, recommendations, and applications.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+</div>
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Account</div>
+    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link"><span class="icon">👤</span> Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Cards -->
+<div class="stat-grid animate-in">
+    <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-value">{{ 1 if active_resume else 0 }}</div>
+        <div class="stat-label">Active Resume</div>
+    </div>
+    <div class="stat-card accent-green">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value">{{ recommendations|length }}</div>
+        <div class="stat-label">Job Matches</div>
+    </div>
+    <div class="stat-card accent-orange">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">{{ recent_applications|length }}</div>
+        <div class="stat-label">Applications</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📂</div>
+        <div class="stat-value">{{ active_resume.classified_category or 'N/A' if active_resume else 'N/A' }}</div>
+        <div class="stat-label">Resume Category</div>
+    </div>
+</div>
+
+{% if not active_resume %}
+<!-- No Resume Uploaded -->
+<div class="card animate-in animate-in-delay-1">
+    <div class="empty-state">
+        <div class="icon">📄</div>
+        <div class="title">Upload Your Resume</div>
+        <div class="description">Get started by uploading your resume. Our AI will analyze it and recommend the best matching jobs for your skills and experience.</div>
+        <a href="{{ url_for('candidate.resume') }}" class="btn btn-primary btn-lg">Upload Resume</a>
+    </div>
+</div>
+{% else %}
+<!-- Resume Summary -->
+<div class="card mb-6 animate-in animate-in-delay-1">
+    <div class="card-header">
+        <h3 class="card-title">📄 Active Resume</h3>
+        <a href="{{ url_for('candidate.resume') }}" class="btn btn-secondary btn-sm">Manage</a>
+    </div>
+    <div class="card-body">
+        <div class="flex items-center gap-4">
+            <div>
+                <p class="font-semibold">{{ active_resume.file_name }}</p>
+                <p class="text-sm text-muted">Category: <span class="badge badge-primary">{{ active_resume.classified_category or 'Processing...' }}</span></p>
+                <p class="text-xs text-muted mt-4">Uploaded {{ active_resume.uploaded_at.strftime('%B %d, %Y at %I:%M %p') if active_resume.uploaded_at else 'recently' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Recommendations -->
+{% if recommendations %}
+<div class="card mb-6 animate-in animate-in-delay-2">
+    <div class="card-header">
+        <h3 class="card-title">🎯 Top Job Matches</h3>
+        <a href="{{ url_for('candidate.recommendations') }}" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    <div class="card-body">
+        {% for rec in recommendations %}
+        <a href="{{ url_for('candidate.job_detail', job_id=rec.job_id) }}" style="text-decoration:none; color:inherit; display:block;">
+            <div class="job-card mb-4">
+                <div class="job-header">
+                    <div>
+                        <div class="job-title">{{ rec.job.title }}</div>
+                        <div class="job-company">{{ rec.job.recruiter.company_name }}</div>
+                    </div>
+                    <div class="badge badge-{{ 'success' if rec.overall_score >= 0.7 else ('warning' if rec.overall_score >= 0.4 else 'danger') }}">
+                        {{ (rec.overall_score * 100)|round(1) }}% Match
+                    </div>
+                </div>
+                <div class="job-meta">
+                    {% if rec.job.location %}<span class="meta-item">📍 {{ rec.job.location }}</span>{% endif %}
+                    {% if rec.job.job_type %}<span class="meta-item">💼 {{ rec.job.job_type }}</span>{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Recent Applications -->
+{% if recent_applications %}
+<div class="card animate-in animate-in-delay-3">
+    <div class="card-header">
+        <h3 class="card-title">📋 Recent Applications</h3>
+        <a href="{{ url_for('candidate.applications') }}" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Job</th>
+                    <th>Status</th>
+                    <th>Match</th>
+                    <th>Applied</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in recent_applications %}
+                <tr>
+                    <td>{{ app.job.title if app.job else 'N/A' }}</td>
+                    <td><span class="badge badge-{{ 'success' if app.status == 'accepted' else ('warning' if app.status in ['pending', 'reviewed'] else ('primary' if app.status == 'shortlisted' else 'danger')) }}">{{ app.status_display }}</span></td>
+                    <td>{{ app.match_percentage }}</td>
+                    <td class="text-muted">{{ app.applied_at.strftime('%b %d') if app.applied_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

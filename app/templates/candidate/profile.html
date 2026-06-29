@@ -1,0 +1,40 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}👤 My Profile{% endblock %}
+{% block page_subtitle %}Manage your personal and professional information.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+</div>
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Account</div>
+    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link active"><span class="icon">👤</span> Profile</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="card animate-in" style="max-width:700px;">
+    <form method="POST" action="{{ url_for('candidate.profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group"><label class="form-label">First Name</label><input type="text" name="first_name" class="form-control" value="{{ current_user.first_name }}"></div>
+            <div class="form-group"><label class="form-label">Last Name</label><input type="text" name="last_name" class="form-control" value="{{ current_user.last_name }}"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Headline</label><input type="text" name="headline" class="form-control" value="{{ candidate.headline or '' }}" placeholder="e.g., Full Stack Developer | Python Expert"></div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea name="bio" class="form-control" rows="4" placeholder="Tell employers about yourself...">{{ candidate.bio or '' }}</textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ candidate.phone or '' }}"></div>
+            <div class="form-group"><label class="form-label">Location</label><input type="text" name="location" class="form-control" value="{{ candidate.location or '' }}"></div>
+        </div>
+        <div class="form-group"><label class="form-label">LinkedIn URL</label><input type="url" name="linkedin_url" class="form-control" value="{{ candidate.linkedin_url or '' }}" placeholder="https://linkedin.com/in/yourprofile"></div>
+        <div class="form-group"><label class="form-label">Portfolio URL</label><input type="url" name="portfolio_url" class="form-control" value="{{ candidate.portfolio_url or '' }}" placeholder="https://yourportfolio.com"></div>
+        <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="auth-card wide animate-in">
+        <div class="auth-header">
+            <div class="logo">⚡</div>
+            <h1>Join RBJRS</h1>
+            <p>Choose your account type to get started</p>
+        </div>
+
+        <div class="register-choices">
+            <a href="{{ url_for('auth.register_candidate_view') }}" class="register-choice-card">
+                <div class="choice-icon">👨‍💻</div>
+                <h3>I'm a Candidate</h3>
+                <p>Upload your resume and discover jobs that match your skills</p>
+            </a>
+
+            <a href="{{ url_for('auth.register_recruiter_view') }}" class="register-choice-card">
+                <div class="choice-icon">🏢</div>
+                <h3>I'm a Recruiter</h3>
+                <p>Post jobs and find the best-matched candidates automatically</p>
+            </a>
+        </div>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

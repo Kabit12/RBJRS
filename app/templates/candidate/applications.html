@@ -1,0 +1,44 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}My Applications{% endblock %}
+{% block page_title %}📋 My Applications{% endblock %}
+{% block page_subtitle %}Track all your job applications.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link active"><span class="icon">📋</span> Applications</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+{% if applications %}
+<div class="table-container animate-in">
+    <table class="table">
+        <thead><tr><th>Job</th><th>Company</th><th>Match Score</th><th>Status</th><th>Applied</th><th>Action</th></tr></thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td class="font-semibold">{{ app.job.title if app.job else 'N/A' }}</td>
+                <td class="text-muted">{{ app.job.recruiter.company_name if app.job else 'N/A' }}</td>
+                <td>{% if app.match_score %}<span class="badge badge-{{ 'success' if app.match_score >= 0.7 else ('warning' if app.match_score >= 0.4 else 'danger') }}">{{ (app.match_score * 100)|round(1) }}%</span>{% else %}N/A{% endif %}</td>
+                <td><span class="badge badge-{{ 'success' if app.status == 'accepted' else ('primary' if app.status == 'shortlisted' else ('warning' if app.status in ['pending','reviewed'] else 'danger')) }}">{{ app.status_display }}</span></td>
+                <td class="text-muted text-sm">{{ app.applied_at.strftime('%b %d, %Y') if app.applied_at else 'N/A' }}</td>
+                <td><a href="{{ url_for('candidate.job_detail', job_id=app.job_id) }}" class="btn btn-outline btn-sm">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card"><div class="empty-state">
+    <div class="icon">📋</div>
+    <div class="title">No Applications Yet</div>
+    <div class="description">You haven't applied for any jobs yet. Browse jobs and start applying!</div>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="btn btn-primary">Browse Jobs</a>
+</div></div>
+{% endif %}
+{% endblock %}

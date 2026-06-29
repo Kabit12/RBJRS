@@ -1,0 +1,71 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Recruiter Dashboard{% endblock %}
+{% block page_title %}Welcome, {{ current_user.first_name }}! 🏢{% endblock %}
+{% block page_subtitle %}{{ recruiter.company_name }} — Manage your job postings and candidates.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="sidebar-link"><span class="icon">➕</span> Post a Job</a>
+</div>
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Account</div>
+    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="stat-grid animate-in">
+    <div class="stat-card">
+        <div class="stat-icon">💼</div>
+        <div class="stat-value">{{ total_jobs }}</div>
+        <div class="stat-label">Total Jobs</div>
+    </div>
+    <div class="stat-card accent-green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">{{ active_jobs }}</div>
+        <div class="stat-label">Active Jobs</div>
+    </div>
+    <div class="stat-card accent-orange">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">{{ total_applications }}</div>
+        <div class="stat-label">Total Applications</div>
+    </div>
+</div>
+
+<div class="flex justify-between items-center mb-6 animate-in animate-in-delay-1">
+    <h3>Recent Job Postings</h3>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="btn btn-primary btn-sm">➕ Post New Job</a>
+</div>
+
+{% if jobs %}
+{% for job in jobs %}
+<div class="card mb-4 animate-in" style="animation-delay:{{ loop.index * 0.05 }}s">
+    <div class="flex justify-between items-center" style="flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h4 style="margin-bottom:0.25rem;">{{ job.title }}</h4>
+            <div class="flex gap-3" style="flex-wrap:wrap;">
+                {% if job.location %}<span class="text-sm text-muted">📍 {{ job.location }}</span>{% endif %}
+                <span class="text-sm text-muted">📋 {{ job.applicant_count }} applicants</span>
+                <span class="badge badge-{{ 'success' if job.is_active else 'neutral' }}">{{ 'Active' if job.is_active else 'Inactive' }}</span>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="{{ url_for('recruiter.view_applicants', job_id=job.id) }}" class="btn btn-secondary btn-sm">View Applicants</a>
+            <a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" class="btn btn-outline btn-sm">Edit</a>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card"><div class="empty-state">
+    <div class="icon">💼</div>
+    <div class="title">No Jobs Posted</div>
+    <div class="description">Create your first job posting to start receiving applications from matched candidates.</div>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="btn btn-primary">Post a Job</a>
+</div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}My Resume{% endblock %}
+{% block page_title %}My Resume{% endblock %}
+{% block page_subtitle %}Upload and manage your resume. Our AI analyzes it to find the best job matches.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link active"><span class="icon">📄</span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+</div>
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Account</div>
+    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link"><span class="icon">👤</span> Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Upload Section -->
+<div class="card mb-6 animate-in">
+    <div class="card-header">
+        <h3 class="card-title">📤 Upload Resume</h3>
+    </div>
+    <form method="POST" action="{{ url_for('candidate.resume') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="file-upload-zone">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">
+                <strong>Click to upload</strong> or drag and drop<br>
+                PDF or DOCX (max 16MB)
+            </div>
+            <input type="file" name="resume" accept=".pdf,.docx" style="display:none;">
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Upload & Analyze Resume</button>
+        </div>
+    </form>
+</div>
+
+{% if active_resume %}
+<!-- Active Resume Details -->
+<div class="card mb-6 animate-in animate-in-delay-1">
+    <div class="card-header">
+        <h3 class="card-title">✅ Active Resume Analysis</h3>
+        <span class="badge badge-success">Active</span>
+    </div>
+    <div class="card-body">
+        <div class="mb-6">
+            <p class="font-semibold mb-4">{{ active_resume.file_name }}</p>
+            <div class="flex gap-4" style="flex-wrap:wrap;">
+                <span class="badge badge-primary">📂 {{ active_resume.classified_category or 'Uncategorized' }}</span>
+                {% if active_resume.classification_confidence %}
+                <span class="badge badge-neutral">🎯 {{ (active_resume.classification_confidence * 100)|round(1) }}% confidence</span>
+                {% endif %}
+                <span class="badge badge-neutral">📅 {{ active_resume.uploaded_at.strftime('%b %d, %Y') if active_resume.uploaded_at else 'N/A' }}</span>
+            </div>
+        </div>
+
+        <!-- Extracted Skills -->
+        {% set skills = active_resume.skills.all() %}
+        {% if skills %}
+        <div class="mb-6">
+            <h4 class="mb-4">🛠️ Extracted Skills</h4>
+            <div class="skill-tags">
+                {% for rs in skills %}
+                <span class="skill-tag">{{ rs.skill.name if rs.skill else 'Unknown' }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Education -->
+        {% set education = active_resume.education.all() %}
+        {% if education %}
+        <div class="mb-6">
+            <h4 class="mb-4">🎓 Education</h4>
+            {% for edu in education %}
+            <div class="mb-4">
+                <p class="font-semibold">{{ edu.degree or 'Degree' }}{% if edu.field_of_study %} in {{ edu.field_of_study }}{% endif %}</p>
+                {% if edu.institution %}<p class="text-sm text-muted">{{ edu.institution }}</p>{% endif %}
+                {% if edu.gpa %}<p class="text-xs text-muted">GPA: {{ edu.gpa }}</p>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Experience -->
+        {% set experience = active_resume.experience.all() %}
+        {% if experience %}
+        <div class="mb-6">
+            <h4 class="mb-4">💼 Experience</h4>
+            {% for exp in experience %}
+            <div class="mb-4">
+                <p class="font-semibold">{{ exp.title or 'Position' }}</p>
+                {% if exp.company %}<p class="text-sm" style="color:var(--color-accent-primary);">{{ exp.company }}</p>{% endif %}
+                {% if exp.start_date %}<p class="text-xs text-muted">{{ exp.start_date }}{% if exp.end_date %} — {{ exp.end_date }}{% endif %}</p>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Resume History -->
+{% if all_resumes and all_resumes|length > 1 %}
+<div class="card animate-in animate-in-delay-2">
+    <div class="card-header">
+        <h3 class="card-title">📚 Resume History</h3>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Uploaded</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in all_resumes %}
+                <tr>
+                    <td>{{ r.file_name }}</td>
+                    <td><span class="badge badge-primary">{{ r.classified_category or 'N/A' }}</span></td>
+                    <td>
+                        {% if r.is_active %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-neutral">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ r.uploaded_at.strftime('%b %d, %Y') if r.uploaded_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

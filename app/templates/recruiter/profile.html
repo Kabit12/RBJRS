@@ -1,0 +1,49 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Company Profile{% endblock %}
+{% block page_title %}🏢 Company Profile{% endblock %}
+{% block page_subtitle %}Manage your company information.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+</div>
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Account</div>
+    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link active"><span class="icon">🏢</span> Company Profile</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="card animate-in" style="max-width:700px;">
+    <form method="POST" action="{{ url_for('recruiter.profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="auth-divider">Personal Information</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group"><label class="form-label">First Name</label><input type="text" name="first_name" class="form-control" value="{{ current_user.first_name }}"></div>
+            <div class="form-group"><label class="form-label">Last Name</label><input type="text" name="last_name" class="form-control" value="{{ current_user.last_name }}"></div>
+        </div>
+        <div class="auth-divider">Company Information</div>
+        <div class="form-group"><label class="form-label">Company Name</label><input type="text" name="company_name" class="form-control" value="{{ recruiter.company_name }}" required></div>
+        <div class="form-group"><label class="form-label">Company Website</label><input type="url" name="company_website" class="form-control" value="{{ recruiter.company_website or '' }}" placeholder="https://yourcompany.com"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group"><label class="form-label">Industry</label><input type="text" name="industry" class="form-control" value="{{ recruiter.industry or '' }}"></div>
+            <div class="form-group"><label class="form-label">Company Size</label>
+                <select name="company_size" class="form-control">
+                    <option value="">Select size</option>
+                    {% for size in ['1-10', '11-50', '51-200', '201-500', '500+'] %}
+                    <option value="{{ size }}" {{ 'selected' if recruiter.company_size == size else '' }}>{{ size }} employees</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group"><label class="form-label">Company Description</label><textarea name="company_description" class="form-control" rows="4">{{ recruiter.company_description or '' }}</textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ recruiter.phone or '' }}"></div>
+            <div class="form-group"><label class="form-label">Location</label><input type="text" name="location" class="form-control" value="{{ recruiter.location or '' }}"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

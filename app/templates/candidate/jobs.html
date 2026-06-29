@@ -1,0 +1,67 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Browse Jobs{% endblock %}
+{% block page_title %}💼 Browse Jobs{% endblock %}
+{% block page_subtitle %}Explore all active job openings.{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link active"><span class="icon">💼</span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+{% if jobs.items %}
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(350px, 1fr)); gap:1.5rem;">
+    {% for job in jobs.items %}
+    <a href="{{ url_for('candidate.job_detail', job_id=job.id) }}" class="job-card animate-in" style="text-decoration:none; color:inherit; animation-delay:{{ loop.index * 0.05 }}s">
+        <div class="job-header">
+            <div>
+                <div class="job-title">{{ job.title }}</div>
+                <div class="job-company">{{ job.recruiter.company_name }}</div>
+            </div>
+            {% if job.classified_category %}
+            <span class="badge badge-primary">{{ job.classified_category }}</span>
+            {% endif %}
+        </div>
+        <p class="text-sm text-muted" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+            {{ job.description[:150] }}{% if job.description|length > 150 %}...{% endif %}
+        </p>
+        <div class="job-meta">
+            {% if job.location %}<span class="meta-item">📍 {{ job.location }}</span>{% endif %}
+            {% if job.job_type %}<span class="meta-item">💼 {{ job.job_type }}</span>{% endif %}
+            {% if job.salary_range %}<span class="meta-item">💰 {{ job.salary_range }}</span>{% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if jobs.pages > 1 %}
+<div class="pagination">
+    {% if jobs.has_prev %}
+    <a href="{{ url_for('candidate.browse_jobs', page=jobs.prev_num) }}" class="page-link">‹</a>
+    {% endif %}
+    {% for page_num in jobs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if page_num %}
+        <a href="{{ url_for('candidate.browse_jobs', page=page_num) }}" class="page-link {{ 'active' if page_num == jobs.page else '' }}">{{ page_num }}</a>
+        {% else %}
+        <span class="page-link" style="cursor:default;">…</span>
+        {% endif %}
+    {% endfor %}
+    {% if jobs.has_next %}
+    <a href="{{ url_for('candidate.browse_jobs', page=jobs.next_num) }}" class="page-link">›</a>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="card"><div class="empty-state">
+    <div class="icon">💼</div>
+    <div class="title">No Jobs Available</div>
+    <div class="description">There are no active job postings at the moment. Check back later!</div>
+</div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RBJRS — AI-powered Resume-Based Job Recommendation System matching candidates to jobs using NLP and Machine Learning.">
+    <title>{% block title %}RBJRS{% endblock %} — Resume Based Job Recommendation System</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block body %}
+    <!-- Navbar -->
+    <nav class="navbar" id="main-navbar">
+        <a href="{{ url_for('main.index') }}" class="navbar-brand">
+            <span class="brand-icon">⚡</span>
+            <span>RBJRS</span>
+        </a>
+
+        <div class="navbar-nav">
+            {% if current_user.is_authenticated %}
+                <!-- User info and logout -->
+                <div class="navbar-user">
+                    <div class="user-avatar">
+                        {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                    </div>
+                    <span class="user-name">{{ current_user.full_name }}</span>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link" title="Logout">🚪</a>
+                </div>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="nav-link">Sign In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar (shown on dashboard pages) -->
+    {% block sidebar %}{% endblock %}
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-container" id="flash-container">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} animate-in" role="alert">
+                <span>{{ message }}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+
+    {% endblock %}
+
+    <!-- Core JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

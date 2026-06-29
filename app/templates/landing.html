@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RBJRS — AI-powered Resume-Based Job Recommendation System. Upload your resume and get matched with the perfect jobs using Machine Learning and NLP.">
+    <title>RBJRS — AI-Powered Job Matching</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Landing Page Specific Styles */
+        .landing-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 3rem;
+            background: rgba(8, 11, 26, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .landing-nav .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #e6edf3;
+        }
+
+        .landing-nav .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .landing-nav .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hero-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Animated Background Orbs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .bg-orb-1 {
+            width: 500px;
+            height: 500px;
+            background: #667eea;
+            top: -10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .bg-orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #764ba2;
+            bottom: -5%;
+            right: -5%;
+            animation-delay: -7s;
+        }
+
+        .bg-orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #06d6a0;
+            top: 40%;
+            right: 20%;
+            animation-delay: -14s;
+            opacity: 0.08;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -40px) scale(1.05); }
+            50% { transform: translate(-20px, 30px) scale(0.95); }
+            75% { transform: translate(20px, 20px) scale(1.02); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            color: #667eea;
+            margin-bottom: 2rem;
+            animation: slideIn 0.6s ease both;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.6s ease 0.1s both;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #8b949e;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.7;
+            animation: slideIn 0.6s ease 0.2s both;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            animation: slideIn 0.6s ease 0.3s both;
+            flex-wrap: wrap;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 6rem 2rem;
+            background: rgba(13, 17, 23, 0.5);
+            position: relative;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(22, 27, 34, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.12);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(102, 126, 234, 0.35);
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: #8b949e;
+            line-height: 1.6;
+        }
+
+        /* How It Works */
+        .how-section {
+            padding: 6rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #8b949e;
+            margin-bottom: 4rem;
+            font-size: 1.1rem;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .step {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .step-number {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 1rem;
+        }
+
+        .step h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.05));
+        }
+
+        /* Footer */
+        .landing-footer {
+            padding: 2rem 3rem;
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #6e7681;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1rem; }
+            .landing-nav { padding: 1rem 1.5rem; }
+            .features-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-hero">
+        <!-- Background Orbs -->
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+
+        <!-- Navigation -->
+        <nav class="landing-nav">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <span>RBJRS</span>
+            </div>
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'candidate' %}
+                    <a href="{{ url_for('candidate.dashboard') }}" class="btn btn-primary btn-sm">Dashboard</a>
+                    {% elif current_user.role == 'recruiter' %}
+                    <a href="{{ url_for('recruiter.dashboard') }}" class="btn btn-primary btn-sm">Dashboard</a>
+                    {% elif current_user.role == 'admin' %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-sm">Dashboard</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link" style="color:#8b949e; font-size:0.9rem; font-weight:500;">Sign In</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <!-- Hero Content -->
+        <div class="hero-content">
+            <div>
+                <div class="hero-badge">🤖 Powered by Machine Learning & NLP</div>
+                <h1 class="hero-title">
+                    Find Your <span class="text-gradient">Perfect Job</span><br>
+                    with AI Matching
+                </h1>
+                <p class="hero-subtitle">
+                    Upload your resume and let our intelligent recommendation engine match you with the most relevant jobs. Powered by TF-IDF, Cosine Similarity, and KNN algorithms.
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                        Get Started Free →
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">
+                        Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <section class="features-section">
+        <div class="section-title">Why RBJRS?</div>
+        <div class="section-subtitle">Intelligent features that bridge the gap between candidates and opportunities.</div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>AI-Powered Matching</h3>
+                <p>Our recommendation engine uses TF-IDF vectorization, Cosine Similarity, and KNN algorithms to find the best job matches for your skills and experience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3>Smart Resume Parsing</h3>
+                <p>Upload your PDF or DOCX resume. Our NLP pipeline automatically extracts skills, education, experience, certifications, and projects from your resume.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Job Fit Score</h3>
+                <p>Get a detailed breakdown of how well you match each job — skills, education, experience scores with strengths and improvement suggestions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏢</div>
+                <h3>Recruiter Dashboard</h3>
+                <p>Post jobs and see AI-ranked candidates automatically. View match scores and skill breakdowns to find the best talent quickly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Resume Classification</h3>
+                <p>Machine learning classifier automatically categorizes your resume into 25 job domains using a trained SVM model for precise matching.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure Platform</h3>
+                <p>Built with enterprise-grade security — bcrypt password hashing, CSRF protection, input validation, and role-based access control.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-section">
+        <div class="section-title">How It Works</div>
+        <div class="section-subtitle">Three simple steps to find your perfect job match.</div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Upload Resume</h4>
+                <p>Upload your PDF or DOCX resume. Our system extracts and analyzes your skills, education, and experience.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>AI Analysis</h4>
+                <p>Our ML pipeline classifies your resume, vectorizes it with TF-IDF, and computes similarity against all active jobs.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Get Matched</h4>
+                <p>Receive ranked job recommendations with match percentages, skill breakdowns, and personalized improvement tips.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h4>Apply & Track</h4>
+                <p>Apply to matched jobs with one click and track your application status in real-time from your dashboard.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2 style="font-size:2.5rem; font-weight:800; margin-bottom:1rem;">Ready to Find Your Match?</h2>
+        <p style="color:#8b949e; margin-bottom:2rem; font-size:1.1rem;">Join RBJRS and let AI connect you with the right opportunities.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Create Free Account →</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <span>© 2025 RBJRS — Resume Based Job Recommendation System</span>
+        <span>Built with Flask, scikit-learn, NLTK & spaCy</span>
+    </footer>
+</body>
+</html>

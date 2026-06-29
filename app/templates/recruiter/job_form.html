@@ -1,0 +1,79 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}{{ 'Edit Job' if is_edit else 'Post New Job' }}{% endblock %}
+{% block page_title %}{{ '✏️ Edit Job' if is_edit else '➕ Post New Job' }}{% endblock %}
+{% block page_subtitle %}{{ 'Update your job listing.' if is_edit else 'Create a new job posting to find matched candidates.' }}{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="sidebar-link {{ 'active' if not is_edit else '' }}"><span class="icon">➕</span> Post a Job</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="card animate-in" style="max-width:800px;">
+    <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) if is_edit else url_for('recruiter.create_job_view') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+            <label class="form-label">Job Title *</label>
+            <input type="text" name="title" class="form-control" value="{{ form_data.get('title', '') }}" placeholder="e.g., Senior Python Developer" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Description *</label>
+            <textarea name="description" class="form-control" rows="6" placeholder="Describe the role, team, and what makes this opportunity exciting..." required>{{ form_data.get('description', '') }}</textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" value="{{ form_data.get('location', '') }}" placeholder="e.g., San Francisco, CA / Remote">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Job Type</label>
+                <select name="job_type" class="form-control">
+                    <option value="full-time" {{ 'selected' if form_data.get('job_type') == 'full-time' else '' }}>Full-time</option>
+                    <option value="part-time" {{ 'selected' if form_data.get('job_type') == 'part-time' else '' }}>Part-time</option>
+                    <option value="contract" {{ 'selected' if form_data.get('job_type') == 'contract' else '' }}>Contract</option>
+                    <option value="internship" {{ 'selected' if form_data.get('job_type') == 'internship' else '' }}>Internship</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+                <label class="form-label">Experience Level</label>
+                <input type="text" name="experience_level" class="form-control" value="{{ form_data.get('experience_level', '') }}" placeholder="e.g., Mid Level, 3-5 years">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Salary Range</label>
+                <input type="text" name="salary_range" class="form-control" value="{{ form_data.get('salary_range', '') }}" placeholder="e.g., $80,000 - $120,000">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Requirements</label>
+            <textarea name="requirements" class="form-control" rows="4" placeholder="List the qualifications and requirements...">{{ form_data.get('requirements', '') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Responsibilities</label>
+            <textarea name="responsibilities" class="form-control" rows="4" placeholder="List the key responsibilities...">{{ form_data.get('responsibilities', '') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Required Skills</label>
+            <input type="text" name="skills" class="form-control" value="{{ form_data.get('skills', '') }}" placeholder="e.g., Python, Django, PostgreSQL, Docker (comma-separated)">
+            <span class="form-text">Separate skills with commas.</span>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="btn btn-primary btn-lg">{{ 'Update Job' if is_edit else 'Post Job' }}</button>
+            <a href="{{ url_for('recruiter.manage_jobs') }}" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

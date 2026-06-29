@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Candidate Registration{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="auth-card wide animate-in">
+        <div class="auth-header">
+            <div class="logo">👨‍💻</div>
+            <h1>Create Candidate Account</h1>
+            <p>Start receiving AI-powered job recommendations</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <span>{{ message }}</span>
+                    <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.register_candidate_view') }}" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="first_name">First Name</label>
+                    {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), id="first_name", placeholder="John") }}
+                    {% for error in form.first_name.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="last_name">Last Name</label>
+                    {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), id="last_name", placeholder="Doe") }}
+                    {% for error in form.last_name.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="you@example.com", autocomplete="email") }}
+                {% for error in form.email.errors %}
+                    <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="Min. 8 characters") }}
+                    {% for error in form.password.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                    {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), id="confirm_password", placeholder="Re-enter password") }}
+                    {% for error in form.confirm_password.errors %}
+                        <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone <span class="text-muted">(optional)</span></label>
+                    {{ form.phone(class="form-control", id="phone", placeholder="+1 234 567 890") }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="location">Location <span class="text-muted">(optional)</span></label>
+                    {{ form.location(class="form-control", id="location", placeholder="City, Country") }}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+            · <a href="{{ url_for('auth.register') }}">Choose different role</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

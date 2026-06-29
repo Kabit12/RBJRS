@@ -1,0 +1,7 @@
+{
+  "train_accuracy": 1.0,
+  "test_accuracy": 1.0,
+  "n_samples": 120,
+  "n_features": 775,
+  "n_categories": 25
+}
