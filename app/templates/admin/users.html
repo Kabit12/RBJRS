@@ -1,7 +1,7 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Manage Users{% endblock %}
 {% block page_title %}👥 User Management{% endblock %}
-{% block page_subtitle %}Manage all platform users.{% endblock %}
+{% block page_subtitle %}Manage all platform users. Approve or disapprove recruiters.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
@@ -31,10 +31,34 @@
                 <td class="font-semibold">{{ user.full_name }}</td>
                 <td class="text-muted">{{ user.email }}</td>
                 <td><span class="badge badge-{{ 'primary' if user.role == 'candidate' else ('warning' if user.role == 'recruiter' else 'danger') }}">{{ user.role|title }}</span></td>
-                <td><span class="badge badge-{{ 'success' if user.is_active else 'neutral' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span></td>
+                <td>
+                    <span class="badge badge-{{ 'success' if user.is_active else 'neutral' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span>
+                    {% if user.role == 'recruiter' and user.recruiter_profile %}
+                        {% if user.recruiter_profile.is_approved %}
+                            <span class="badge badge-success">✅ Approved</span>
+                        {% else %}
+                            <span class="badge badge-danger">⏳ Pending</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
                 <td class="text-muted text-sm">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}</td>
                 <td>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2" style="flex-wrap:wrap;">
+                        {# Approve/Disapprove buttons for recruiters #}
+                        {% if user.role == 'recruiter' and user.recruiter_profile %}
+                            {% if not user.recruiter_profile.is_approved %}
+                            <form method="POST" action="{{ url_for('admin.approve_recruiter', user_id=user.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-success btn-sm">✅ Approve</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('admin.disapprove_recruiter', user_id=user.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-warning btn-sm">❌ Disapprove</button>
+                            </form>
+                            {% endif %}
+                        {% endif %}
+
                         <form method="POST" action="{{ url_for('admin.toggle_user', user_id=user.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-{{ 'warning' if user.is_active else 'success' }} btn-sm">{{ 'Deactivate' if user.is_active else 'Activate' }}</button>

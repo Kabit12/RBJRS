@@ -31,7 +31,8 @@ def create_job(recruiter, form_data):
             location=form_data.get('location', '').strip() or None,
             job_type=form_data.get('job_type', 'full-time'),
             experience_level=form_data.get('experience_level', '').strip() or None,
-            salary_range=form_data.get('salary_range', '').strip() or None,
+            salary_min=int(form_data['salary_min']) if form_data.get('salary_min') else None,
+            salary_max=int(form_data['salary_max']) if form_data.get('salary_max') else None,
             requirements=form_data.get('requirements', '').strip() or None,
             responsibilities=form_data.get('responsibilities', '').strip() or None,
             is_active=True,
@@ -67,6 +68,17 @@ def create_job(recruiter, form_data):
                 db.session.add(job_skill)
 
         db.session.commit()
+
+        # Directive 3 Fix: Upsert job embedding into FAISS index
+        try:
+            from app.ml.embedding_service import embedding_service
+            from app.ml.job_index import job_index
+            if job.combined_text:
+                job_emb = embedding_service.encode(job.combined_text)
+                job_index.upsert_job(job.id, job_emb)
+        except Exception as e:
+            current_app.logger.warning(f'FAISS index update failed for job {job.id}: {e}')
+
         return True, job
 
     except Exception as e:
@@ -91,7 +103,8 @@ def update_job(job, form_data):
         job.location = form_data.get('location', '').strip() or None
         job.job_type = form_data.get('job_type', 'full-time')
         job.experience_level = form_data.get('experience_level', '').strip() or None
-        job.salary_range = form_data.get('salary_range', '').strip() or None
+        job.salary_min = int(form_data['salary_min']) if form_data.get('salary_min') else None
+        job.salary_max = int(form_data['salary_max']) if form_data.get('salary_max') else None
         job.requirements = form_data.get('requirements', '').strip() or None
         job.responsibilities = form_data.get('responsibilities', '').strip() or None
 
@@ -126,6 +139,17 @@ def update_job(job, form_data):
                 db.session.add(job_skill)
 
         db.session.commit()
+
+        # Directive 3 Fix: Re-upsert updated job embedding into FAISS index
+        try:
+            from app.ml.embedding_service import embedding_service
+            from app.ml.job_index import job_index
+            if job.combined_text:
+                job_emb = embedding_service.encode(job.combined_text)
+                job_index.upsert_job(job.id, job_emb)
+        except Exception as e:
+            current_app.logger.warning(f'FAISS index update failed for job {job.id}: {e}')
+
         return True, job
 
     except Exception as e:
@@ -136,8 +160,17 @@ def update_job(job, form_data):
 def delete_job(job):
     """Delete a job posting."""
     try:
+        job_id = job.id
         db.session.delete(job)
         db.session.commit()
+
+        # Directive 3 Fix: Remove deleted job from FAISS index
+        try:
+            from app.ml.job_index import job_index
+            job_index.remove_job(job_id)
+        except Exception as e:
+            current_app.logger.warning(f'FAISS index removal failed for job {job_id}: {e}')
+
         return True, 'Job deleted successfully.'
     except Exception as e:
         db.session.rollback()

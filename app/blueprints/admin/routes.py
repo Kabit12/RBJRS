@@ -131,6 +131,46 @@ def toggle_job(job_id):
     return redirect(url_for('admin.manage_jobs'))
 
 
+@admin_bp.route('/recruiters/<int:user_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_recruiter(user_id):
+    """Approve a recruiter account."""
+    user = db.session.get(User, user_id)
+    if not user or user.role != 'recruiter':
+        abort(404)
+
+    recruiter = user.recruiter_profile
+    if recruiter:
+        recruiter.is_approved = True
+        db.session.commit()
+        flash(f'Recruiter {user.full_name} ({recruiter.company_name}) has been approved.', 'success')
+    else:
+        flash('Recruiter profile not found.', 'danger')
+
+    return redirect(url_for('admin.manage_users', role='recruiter'))
+
+
+@admin_bp.route('/recruiters/<int:user_id>/disapprove', methods=['POST'])
+@login_required
+@admin_required
+def disapprove_recruiter(user_id):
+    """Disapprove (revoke approval) a recruiter account."""
+    user = db.session.get(User, user_id)
+    if not user or user.role != 'recruiter':
+        abort(404)
+
+    recruiter = user.recruiter_profile
+    if recruiter:
+        recruiter.is_approved = False
+        db.session.commit()
+        flash(f'Recruiter {user.full_name} ({recruiter.company_name}) has been disapproved.', 'warning')
+    else:
+        flash('Recruiter profile not found.', 'danger')
+
+    return redirect(url_for('admin.manage_users', role='recruiter'))
+
+
 @admin_bp.route('/analytics')
 @login_required
 @admin_required

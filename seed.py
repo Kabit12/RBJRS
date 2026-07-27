@@ -91,16 +91,21 @@ def seed_database():
         if success:
             print(f'  [OK] Recruiter created: recruiter@techcorp.com / recruiter123')
             recruiter = result.recruiter_profile
+            # Auto-approve the sample recruiter
+            recruiter.is_approved = True
+            db.session.commit()
+            print(f'  [OK] Recruiter auto-approved')
 
             # Create sample jobs
             sample_jobs = [
                 {
                     'title': 'Senior Python Developer',
                     'description': 'We are looking for an experienced Python developer to join our backend team. You will work on building scalable APIs, microservices, and data pipelines. The ideal candidate has strong experience with Django/Flask, PostgreSQL, Docker, and cloud platforms.',
-                    'location': 'San Francisco, CA (Hybrid)',
+                    'location': 'Kathmandu, Nepal (Hybrid)',
                     'job_type': 'full-time',
                     'experience_level': 'Senior',
-                    'salary_range': '$120,000 - $160,000',
+                    'salary_min': '80000',
+                    'salary_max': '150000',
                     'requirements': 'Bachelor\'s degree in Computer Science or related field.\n5+ years of Python development experience.\nStrong knowledge of Django or Flask frameworks.\nExperience with PostgreSQL, Redis, Docker.\nFamiliarity with AWS or GCP cloud services.',
                     'responsibilities': 'Design and implement RESTful APIs.\nBuild and maintain microservices architecture.\nOptimize database queries and application performance.\nParticipate in code reviews and mentor junior developers.\nCollaborate with product and design teams.',
                     'skills': 'python, django, flask, postgresql, docker, aws, redis, git',
@@ -111,7 +116,8 @@ def seed_database():
                     'location': 'Remote',
                     'job_type': 'full-time',
                     'experience_level': 'Mid Level',
-                    'salary_range': '$100,000 - $140,000',
+                    'salary_min': '60000',
+                    'salary_max': '120000',
                     'requirements': 'Master\'s degree in Data Science, Statistics, or related field.\n3+ years of experience in ML/data science.\nStrong Python skills (NumPy, Pandas, scikit-learn, TensorFlow).\nExperience with NLP and recommendation systems.',
                     'responsibilities': 'Build and deploy machine learning models.\nConduct statistical analysis and A/B testing.\nCreate data visualizations and dashboards.\nCollaborate with engineering teams on model deployment.',
                     'skills': 'python, machine learning, deep learning, nlp, tensorflow, scikit-learn, sql, data analysis',
@@ -119,10 +125,11 @@ def seed_database():
                 {
                     'title': 'Frontend Developer (React)',
                     'description': 'We need a talented frontend developer to create beautiful, responsive web applications using React. You will work closely with designers and backend engineers.',
-                    'location': 'New York, NY',
+                    'location': 'Lalitpur, Nepal',
                     'job_type': 'full-time',
                     'experience_level': 'Mid Level',
-                    'salary_range': '$90,000 - $130,000',
+                    'salary_min': '50000',
+                    'salary_max': '100000',
                     'requirements': '3+ years of React development experience.\nStrong HTML, CSS, JavaScript/TypeScript skills.\nExperience with state management (Redux, Zustand).\nFamiliarity with RESTful APIs and GraphQL.',
                     'responsibilities': 'Build responsive UI components using React.\nImplement pixel-perfect designs from Figma mockups.\nOptimize frontend performance.\nWrite unit and integration tests.',
                     'skills': 'javascript, typescript, react, html, css, git',
@@ -130,10 +137,11 @@ def seed_database():
                 {
                     'title': 'DevOps Engineer',
                     'description': 'We are seeking a DevOps engineer to manage our cloud infrastructure and CI/CD pipelines. You will ensure high availability and reliability of our production systems.',
-                    'location': 'Austin, TX (Remote OK)',
+                    'location': 'Kathmandu, Nepal (Remote OK)',
                     'job_type': 'full-time',
                     'experience_level': 'Senior',
-                    'salary_range': '$130,000 - $170,000',
+                    'salary_min': '90000',
+                    'salary_max': '160000',
                     'requirements': '5+ years of DevOps/SRE experience.\nStrong knowledge of AWS services.\nExperience with Docker, Kubernetes, Terraform.\nCI/CD pipeline expertise (Jenkins, GitHub Actions).',
                     'responsibilities': 'Design and manage cloud infrastructure on AWS.\nBuild and maintain CI/CD pipelines.\nMonitor system performance and reliability.\nImplement security best practices.',
                     'skills': 'aws, docker, kubernetes, terraform, git, python, linux',
@@ -141,10 +149,11 @@ def seed_database():
                 {
                     'title': 'Java Backend Developer',
                     'description': 'Looking for a Java developer to build enterprise-grade backend services using Spring Boot. Strong understanding of microservices architecture required.',
-                    'location': 'Chicago, IL',
+                    'location': 'Pokhara, Nepal',
                     'job_type': 'full-time',
                     'experience_level': 'Mid Level',
-                    'salary_range': '$95,000 - $125,000',
+                    'salary_min': '45000',
+                    'salary_max': '85000',
                     'requirements': '3-5 years of Java development.\nSpring Boot and Hibernate experience.\nSQL database knowledge (MySQL, PostgreSQL).\nExperience with microservices and REST APIs.',
                     'responsibilities': 'Develop microservices using Spring Boot.\nDesign database schemas and write optimized queries.\nParticipate in architecture decisions.\nWrite comprehensive unit and integration tests.',
                     'skills': 'java, spring boot, mysql, postgresql, docker, git',

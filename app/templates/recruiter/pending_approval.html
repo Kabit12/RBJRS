@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Pending Approval{% endblock %}
+
+{% block content %}
+<div style="min-height:80vh; display:flex; align-items:center; justify-content:center; padding:2rem;">
+    <div class="card animate-in" style="max-width:550px; text-align:center; padding:3rem;">
+        <div style="font-size:4rem; margin-bottom:1.5rem;">⏳</div>
+        <h2 style="margin-bottom:1rem; color:var(--color-accent-yellow);">Account Pending Approval</h2>
+        <p class="text-muted" style="font-size:1.1rem; line-height:1.7; margin-bottom:2rem;">
+            Thank you for registering as a recruiter on RBJRS!<br><br>
+            Your account is currently <strong>pending admin approval</strong>.
+            Once an administrator approves your account, you will be able to
+            access the recruiter dashboard, post jobs, and view candidates.
+        </p>
+        <div style="padding:1rem; background:var(--color-bg-secondary); border-radius:var(--radius-lg); margin-bottom:2rem;">
+            <p class="text-sm text-muted" style="margin:0;">
+                🏢 <strong>{{ current_user.recruiter_profile.company_name if current_user.recruiter_profile else 'Your Company' }}</strong><br>
+                📧 {{ current_user.email }}
+            </p>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Logout</a>
+    </div>
+</div>
+{% endblock %}

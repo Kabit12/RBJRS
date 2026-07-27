@@ -24,8 +24,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 class Config:
     """Base configuration shared across all environments."""
 
-    # Flask Core
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-secret-key-change-me')
+    # Flask Core — SECRET_KEY is REQUIRED. No fallback.
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    if not SECRET_KEY:
+        raise RuntimeError(
+            'FATAL: SECRET_KEY environment variable is not set. '
+            'Set it in your .env file: SECRET_KEY=<your-random-secret-at-least-32-chars>'
+        )
 
     # SQLAlchemy
     SQLALCHEMY_DATABASE_URI = os.environ.get(
@@ -35,8 +40,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False  # Set True to see SQL queries in console
 
-    # File Upload
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
+    # File Upload — OUTSIDE web root for security (no static serving of PII)
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))  # 16MB
     ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 
@@ -50,6 +55,9 @@ class Config:
     # WTForms CSRF Protection
     WTF_CSRF_ENABLED = True
 
+    # Google OAuth (for "Sign in with Google" on candidate side)
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+
 
 class DevelopmentConfig(Config):
     """Development environment configuration."""
@@ -62,7 +70,7 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # In-memory DB for tests
     WTF_CSRF_ENABLED = False  # Disable CSRF for testing
-    LOGIN_DISABLED = True
+    RATELIMIT_ENABLED = False  # Disable rate limiting in tests
 
 
 class ProductionConfig(Config):
@@ -70,8 +78,9 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_ECHO = False
     # In production, DATABASE_URL should point to MySQL
-    # SESSION_COOKIE_SECURE = True  # Enable when using HTTPS
-    # SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = True      # Cookies only sent over HTTPS
+    SESSION_COOKIE_HTTPONLY = True     # Cookies inaccessible to JavaScript
+    SESSION_COOKIE_SAMESITE = 'Lax'   # CSRF protection for cookies
 
 
 # Configuration mapping for easy access

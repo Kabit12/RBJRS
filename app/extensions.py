@@ -15,6 +15,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Database ORM - Maps Python classes to database tables
 # Provides query interface, relationship management, and transaction handling
@@ -38,3 +40,11 @@ bcrypt = Bcrypt()
 # CSRF Protection - Prevents Cross-Site Request Forgery attacks
 # Automatically validates CSRF tokens on form submissions
 csrf = CSRFProtect()
+
+# Rate Limiting - Prevents credential stuffing, spam uploads, and abuse
+# Uses in-memory storage by default; switch to Redis for multi-process deployments
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)

@@ -18,7 +18,7 @@ def get_upload_path(subfolder='resumes'):
     Returns:
         Absolute path string
     """
-    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads')
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
     path = os.path.join(upload_folder, subfolder)
     os.makedirs(path, exist_ok=True)
     return path

@@ -63,6 +63,7 @@ class Application(db.Model):
 
     # Optional cover letter
     cover_letter = db.Column(db.Text)
+    cover_letter_file = db.Column(db.String(500))  # Path to uploaded cover letter file
 
     # Timestamps
     applied_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

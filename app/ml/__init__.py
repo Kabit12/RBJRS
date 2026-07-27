@@ -7,8 +7,10 @@ Modules:
     - resume_parser: PDF/DOCX text extraction
     - text_preprocessor: NLP text cleaning pipeline
     - feature_extractor: Skill/education/experience extraction
-    - resume_classifier: Resume category classification
+    - resume_classifier: Resume category classification (TF-IDF + SVM)
     - job_classifier: Job category classification
-    - recommendation_engine: Cosine similarity + KNN matching
+    - embedding_service: Sentence-transformer embeddings (NEW — replaces TF-IDF refit)
+    - job_index: FAISS-based job vector index (NEW — replaces brute-force KNN)
+    - recommendation_engine: Multi-signal matching (embedding + skills + education + experience)
     - scoring: Job Fit Score computation
 """

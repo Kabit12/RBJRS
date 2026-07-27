@@ -21,6 +21,7 @@ The factory performs these steps in order:
 import os
 from flask import Flask
 from app.config import config_map
+from app.extensions import migrate
 
 
 def create_app(config_name=None):
@@ -65,13 +66,14 @@ def create_app(config_name=None):
 
 def _init_extensions(app):
     """Bind all Flask extensions to the application instance."""
-    from app.extensions import db, migrate, login_manager, bcrypt, csrf
+    from app.extensions import db, migrate, login_manager, bcrypt, csrf, limiter
 
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+    limiter.init_app(app)
 
 
 def _register_blueprints(app):
@@ -102,13 +104,20 @@ def _register_blueprints(app):
 
 
 def _ensure_directories(app):
-    """Create required directories if they don't exist."""
+    """
+    Create required directories if they don't exist.
+
+    Note: UPLOAD_FOLDER is now OUTSIDE app/static/ for security.
+    Files are served via authenticated routes, not static serving.
+    """
+    upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
     directories = [
-        app.config.get('UPLOAD_FOLDER', 'app/static/uploads'),
+        upload_folder,
         app.config.get('MODEL_DIR', 'ml_models'),
-        os.path.join(app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'resumes'),
-        os.path.join(app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'logos'),
-        os.path.join(app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'profiles'),
+        os.path.join(upload_folder, 'resumes'),
+        os.path.join(upload_folder, 'logos'),
+        os.path.join(upload_folder, 'profiles'),
+        os.path.join(upload_folder, 'cover_letters'),
     ]
     for directory in directories:
         os.makedirs(directory, exist_ok=True)

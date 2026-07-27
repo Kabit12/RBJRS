@@ -1,7 +1,7 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}My Resume{% endblock %}
 {% block page_title %}My Resume{% endblock %}
-{% block page_subtitle %}Upload and manage your resume. Our AI analyzes it to find the best job matches.{% endblock %}
+{% block page_subtitle %}Upload and manage your resumes. Our AI analyzes them to find the best job matches.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
@@ -27,6 +27,13 @@
     </div>
     <form method="POST" action="{{ url_for('candidate.resume') }}" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+            <label class="form-label">Target Role (optional)</label>
+            <input type="text" name="target_role" class="form-control" placeholder="e.g., For Data Science roles, For Web Development positions">
+            <span class="form-text">Label this resume for a specific job category to keep your resumes organized.</span>
+        </div>
+
         <div class="file-upload-zone">
             <div class="upload-icon">📄</div>
             <div class="upload-text">
@@ -55,6 +62,9 @@
                 <span class="badge badge-primary">📂 {{ active_resume.classified_category or 'Uncategorized' }}</span>
                 {% if active_resume.classification_confidence %}
                 <span class="badge badge-neutral">🎯 {{ (active_resume.classification_confidence * 100)|round(1) }}% confidence</span>
+                {% endif %}
+                {% if active_resume.target_role %}
+                <span class="badge badge-warning">🏷️ {{ active_resume.target_role }}</span>
                 {% endif %}
                 <span class="badge badge-neutral">📅 {{ active_resume.uploaded_at.strftime('%b %d, %Y') if active_resume.uploaded_at else 'N/A' }}</span>
             </div>
@@ -107,25 +117,35 @@
 {% endif %}
 
 <!-- Resume History -->
-{% if all_resumes and all_resumes|length > 1 %}
+{% if all_resumes and all_resumes|length > 0 %}
 <div class="card animate-in animate-in-delay-2">
     <div class="card-header">
         <h3 class="card-title">📚 Resume History</h3>
+        <span class="text-sm text-muted">{{ all_resumes|length }} resume{{ 's' if all_resumes|length != 1 else '' }}</span>
     </div>
     <div class="table-container">
         <table class="table">
             <thead>
                 <tr>
                     <th>File</th>
+                    <th>Target Role</th>
                     <th>Category</th>
                     <th>Status</th>
                     <th>Uploaded</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in all_resumes %}
                 <tr>
                     <td>{{ r.file_name }}</td>
+                    <td>
+                        {% if r.target_role %}
+                        <span class="badge badge-warning">{{ r.target_role }}</span>
+                        {% else %}
+                        <span class="text-muted text-xs">General</span>
+                        {% endif %}
+                    </td>
                     <td><span class="badge badge-primary">{{ r.classified_category or 'N/A' }}</span></td>
                     <td>
                         {% if r.is_active %}
@@ -135,6 +155,21 @@
                         {% endif %}
                     </td>
                     <td class="text-muted">{{ r.uploaded_at.strftime('%b %d, %Y') if r.uploaded_at else 'N/A' }}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('candidate.download_resume', resume_id=r.id) }}" class="btn btn-outline btn-sm" title="Download resume">📥 Download</a>
+                            {% if not r.is_active %}
+                            <form method="POST" action="{{ url_for('candidate.set_active_resume', resume_id=r.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-success btn-sm" title="Set as active resume">✅ Set Active</button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('candidate.delete_resume', resume_id=r.id) }}" onsubmit="return confirm('Delete this resume? This cannot be undone.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete this resume">🗑️ Delete</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

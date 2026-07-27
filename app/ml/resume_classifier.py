@@ -6,9 +6,14 @@ Classifies resumes into job domain categories using supervised ML.
 Architecture:
 - TF-IDF Vectorizer converts cleaned resume text into feature vectors
 - SVM (Support Vector Machine) classifier with linear kernel for category prediction
-- The model is trained on the Kaggle Resume Dataset (962 resumes, 25 categories)
 
-Categories:
+Training Data:
+- Currently trained on ~450 SYNTHETIC samples generated in train_classifier.py
+- NOT trained on real-world resumes — accuracy on real data is unverified
+- The model should be retrained on real data (e.g., Kaggle Resume Dataset)
+  for production use
+
+Categories (25):
     Data Science, HR, Advocate, Arts, Web Designing, Mechanical Engineer,
     Sales, Health and Fitness, Civil Engineer, Java Developer, Business Analyst,
     SAP Developer, Automation Testing, Electrical Engineering, Operations Manager,
@@ -16,11 +21,9 @@ Categories:
     Hadoop, ETL Developer, DotNet Developer, Blockchain, Testing
 
 Design Decisions:
-- SVM with linear kernel is chosen because:
-  1. Works exceptionally well with high-dimensional TF-IDF features
-  2. Fast inference time (critical for real-time classification)
-  3. Good accuracy on text classification tasks
-  4. Handles the 25-category multi-class problem well
+- SVM with linear kernel works well with high-dimensional TF-IDF features
+- Confidence threshold: predictions below 0.35 confidence return 'Unknown'
+  to avoid misleading low-confidence guesses
 - TF-IDF max_features=5000 to balance vocabulary coverage vs. noise
 - The model and vectorizer are saved as pickle files for fast loading
 
@@ -89,6 +92,10 @@ class ResumeClassifier:
             print(f'Error loading model: {e}')
             return False
 
+    # Minimum confidence threshold — below this, return 'Unknown'
+    # to avoid misleading low-confidence category assignments
+    CONFIDENCE_THRESHOLD = 0.35
+
     def predict(self, text):
         """
         Predict the job category for a resume text.
@@ -98,7 +105,8 @@ class ResumeClassifier:
 
         Returns:
             Tuple of (category: str, confidence: float)
-            Returns ('Unknown', 0.0) if model is not loaded.
+            Returns ('Unknown', 0.0) if model is not loaded or confidence
+            is below the threshold.
         """
         if not self.is_loaded:
             return 'Unknown', 0.0
@@ -125,6 +133,10 @@ class ResumeClassifier:
                 confidence = float(max(probabilities))
             else:
                 confidence = 0.8  # Default confidence
+
+            # Reject low-confidence predictions
+            if confidence < self.CONFIDENCE_THRESHOLD:
+                return 'Unknown', confidence
 
             return category, confidence
 

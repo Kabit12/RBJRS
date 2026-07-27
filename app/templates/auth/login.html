@@ -1,58 +1,78 @@
 {% extends "base.html" %}
 {% block title %}Sign In{% endblock %}
 
-{% block body %}
-<div class="auth-page">
-    <div class="auth-card animate-in">
-        <div class="auth-header">
-            <div class="logo">⚡</div>
-            <h1>Welcome Back</h1>
-            <p>Sign in to your RBJRS account</p>
+{% block content %}
+<div style="min-height:80vh; display:flex; align-items:center; justify-content:center; padding:2rem;">
+    <div class="card animate-in" style="max-width:440px; width:100%; padding:2.5rem;">
+        <div class="text-center mb-6">
+            <h2 style="margin-bottom:0.5rem;">Welcome Back</h2>
+            <p class="text-muted">Sign in to your RBJRS account</p>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    <span>{{ message }}</span>
-                    <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+        <form method="POST" action="{{ url_for('auth.login') }}">
             {{ form.hidden_tag() }}
 
             <div class="form-group">
-                <label class="form-label" for="email">Email Address</label>
-                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="you@example.com", autocomplete="email") }}
+                <label class="form-label">Email</label>
+                {{ form.email(class="form-control", placeholder="you@example.com") }}
                 {% for error in form.email.errors %}
-                    <span class="form-error">{{ error }}</span>
+                <span class="form-text" style="color:var(--color-accent-red);">{{ error }}</span>
                 {% endfor %}
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="password">Password</label>
-                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="Enter your password", autocomplete="current-password") }}
+                <label class="form-label">Password</label>
+                {{ form.password(class="form-control", placeholder="••••••••") }}
                 {% for error in form.password.errors %}
-                    <span class="form-error">{{ error }}</span>
+                <span class="form-text" style="color:var(--color-accent-red);">{{ error }}</span>
                 {% endfor %}
             </div>
 
             <div class="form-group">
-                <div class="form-check">
-                    {{ form.remember_me(id="remember_me") }}
-                    <label for="remember_me">Remember me</label>
-                </div>
+                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                    {{ form.remember_me() }}
+                    <span class="text-sm">Remember me</span>
+                </label>
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg btn-block">Sign In</button>
         </form>
 
-        <div class="auth-footer">
-            Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a>
+        {% if google_client_id %}
+        <div style="margin-top:1.5rem; text-align:center;">
+            <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+                <hr style="flex:1; border:none; border-top:1px solid var(--color-border);">
+                <span class="text-xs text-muted">OR</span>
+                <hr style="flex:1; border:none; border-top:1px solid var(--color-border);">
+            </div>
+            <div id="g_id_onload"
+                 data-client_id="{{ google_client_id }}"
+                 data-login_uri="{{ url_for('auth.google_callback', _external=True) }}"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left"
+                 data-width="380">
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="text-center mt-6">
+            <p class="text-sm text-muted">
+                Don't have an account? <a href="{{ url_for('auth.register') }}" style="color:var(--color-accent-primary);">Create one</a>
+            </p>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if google_client_id %}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+{% endif %}
 {% endblock %}

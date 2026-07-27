@@ -59,10 +59,19 @@ class Resume(db.Model):
     classified_category = db.Column(db.String(100))  # Predicted job domain
     classification_confidence = db.Column(db.Float)   # Model confidence score
 
+    # Embedding vector — pre-computed sentence-transformer embedding (384-dim, float32)
+    # Stored as binary blob (~1.5KB per resume) to avoid re-computing on every request
+    embedding = db.Column(db.LargeBinary)
+
+    # Target role label (user-specified, e.g., "For Data Science roles")
+    target_role = db.Column(db.String(255))
+
     # Complete parsed data as JSON (backup/flexibility)
     parsed_data = db.Column(db.JSON)
 
-    # Status
+    # Status & Async Processing (Directive 2 Fix)
+    processing_status = db.Column(db.String(20), default='pending', nullable=False)  # 'pending', 'processing', 'completed', 'failed'
+    processing_error = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     uploaded_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 

@@ -25,6 +25,7 @@ from app.models.resume import (
 from app.models.job import Job, JobSkill
 from app.models.application import Application
 from app.models.recommendation import Recommendation
+from app.models.notification import Notification
 
 # This list makes it convenient to reference all models programmatically
 __all__ = [
@@ -42,4 +43,5 @@ __all__ = [
     'JobSkill',
     'Application',
     'Recommendation',
+    'Notification',
 ]

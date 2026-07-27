@@ -1,0 +1,60 @@
+{% extends "components/dashboard_base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block page_title %}🔔 Notifications{% endblock %}
+{% block page_subtitle %}{{ unread_count }} unread notification{{ 's' if unread_count != 1 else '' }}{% endblock %}
+
+{% block sidebar_content %}
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+    <a href="{{ url_for('recruiter.notifications') }}" class="sidebar-link active"><span class="icon">🔔</span> Notifications {% if unread_count %}<span class="badge badge-danger" style="font-size:0.65rem; padding:0.15rem 0.4rem; margin-left:0.25rem;">{{ unread_count }}</span>{% endif %}</a>
+</div>
+<div class="sidebar-section">
+    <div class="sidebar-section-title">Account</div>
+    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+{% if notifications %}
+<div class="flex justify-between items-center mb-6 animate-in">
+    <span class="text-muted">{{ notifications|length }} notification{{ 's' if notifications|length != 1 else '' }}</span>
+    {% if unread_count > 0 %}
+    <form method="POST" action="{{ url_for('recruiter.mark_all_notifications_read') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline btn-sm">✅ Mark All as Read</button>
+    </form>
+    {% endif %}
+</div>
+
+{% for notif in notifications %}
+<div class="card mb-4 animate-in" style="animation-delay:{{ loop.index * 0.03 }}s; {{ 'border-left:3px solid var(--color-accent-primary);' if not notif.is_read else 'opacity:0.7;' }}">
+    <div class="flex justify-between items-center" style="gap:1rem;">
+        <div>
+            <p style="margin-bottom:0.25rem; {{ 'font-weight:600;' if not notif.is_read else '' }}">
+                {{ '🔵' if not notif.is_read else '⚪' }} {{ notif.message }}
+            </p>
+            <span class="text-xs text-muted">{{ notif.created_at.strftime('%b %d, %Y at %I:%M %p') if notif.created_at else '' }}</span>
+        </div>
+        <div class="flex gap-2">
+            {% if notif.link %}
+            <form method="POST" action="{{ url_for('recruiter.mark_notification_read', notif_id=notif.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-primary btn-sm">View</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="card animate-in"><div class="empty-state">
+    <div class="icon">🔔</div>
+    <div class="title">No Notifications</div>
+    <div class="description">You're all caught up! Notifications will appear here when candidates apply for your jobs.</div>
+</div></div>
+{% endif %}
+{% endblock %}

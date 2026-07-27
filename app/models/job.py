@@ -49,7 +49,8 @@ class Job(db.Model):
         default='full-time'
     )
     experience_level = db.Column(db.String(100))  # e.g., "Entry Level", "2-5 years", "Senior"
-    salary_range = db.Column(db.String(100))       # e.g., "50000-70000" or "Negotiable"
+    salary_min = db.Column(db.Integer)                # Minimum salary in NPR
+    salary_max = db.Column(db.Integer)                # Maximum salary in NPR
 
     # Detailed requirements (parsed by NLP for matching)
     requirements = db.Column(db.Text)        # What the employer needs
@@ -73,6 +74,22 @@ class Job(db.Model):
     recommendations = db.relationship(
         'Recommendation', backref='job', lazy='dynamic', cascade='all, delete-orphan'
     )
+
+    @property
+    def salary_display(self):
+        """Returns formatted salary range in NPR."""
+        if self.salary_min and self.salary_max:
+            return f'NPR {self.salary_min:,} – {self.salary_max:,}'
+        elif self.salary_min:
+            return f'NPR {self.salary_min:,}+'
+        elif self.salary_max:
+            return f'Up to NPR {self.salary_max:,}'
+        return 'Negotiable'
+
+    @property
+    def salary_range(self):
+        """Legacy property for backward compatibility."""
+        return self.salary_display
 
     @property
     def is_expired(self):

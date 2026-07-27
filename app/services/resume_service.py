@@ -9,11 +9,19 @@ Orchestrates the full resume processing pipeline:
 3. Clean text (NLP preprocessor)
 4. Extract features (skills, education, experience)
 5. Classify resume category (ML classifier)
-6. Store structured data in database
-7. Trigger recommendation generation
+6. Compute embedding vector (sentence-transformers)
+7. Store structured data in database
+8. Trigger recommendation generation
+
+Design Decision (Architecture Fix):
+- ML components are imported LAZILY inside functions (not at module level)
+  to avoid circular import risks and cold-start blocking.
+- The old approach imported singletons at module level, which meant
+  every import of resume_service triggered ML model loading.
 """
 
 import os
+import numpy as np
 from flask import current_app
 from app.extensions import db
 from app.models.resume import (
@@ -21,23 +29,92 @@ from app.models.resume import (
     ResumeCertification, ResumeProject
 )
 from app.models.skill import Skill
-from app.ml.resume_parser import resume_parser
-from app.ml.text_preprocessor import text_preprocessor
-from app.ml.feature_extractor import feature_extractor
-from app.ml.resume_classifier import resume_classifier
 from app.utils.validators import validate_resume_file, secure_filename_custom
 
 
-def process_resume_upload(candidate, file):
+from concurrent.futures import ThreadPoolExecutor
+
+# Directive 2 Fix: Background worker pool for CPU-bound ML tasks to avoid blocking WSGI threads
+_executor = ThreadPoolExecutor(max_workers=4)
+
+
+def _background_process_resume(app, resume_id, file_path):
     """
-    Full resume upload and processing pipeline.
+    Background worker function for asynchronous resume ML processing.
+    Runs PDF/DOCX parsing, NLP extraction, category classification, and embedding vector computation.
+    """
+    with app.app_context():
+        resume = db.session.get(Resume, resume_id)
+        if not resume:
+            return
 
-    Args:
-        candidate: Candidate model instance.
-        file: Flask FileStorage object from upload form.
+        try:
+            resume.processing_status = 'processing'
+            db.session.commit()
 
-    Returns:
-        Tuple of (success: bool, resume_or_error: Resume | str)
+            # Step 1: Extract raw text
+            from app.ml.resume_parser import resume_parser
+            raw_text = resume_parser.parse(file_path)
+            if not raw_text or len(raw_text.strip()) < 20:
+                resume.processing_status = 'failed'
+                resume.processing_error = 'Could not extract text from file.'
+                db.session.commit()
+                return
+
+            # Step 2: Clean and preprocess text
+            from app.ml.text_preprocessor import text_preprocessor
+            cleaned_text = text_preprocessor.preprocess(raw_text)
+
+            # Step 3: Extract features
+            from app.ml.feature_extractor import feature_extractor
+            features = feature_extractor.extract_all(raw_text)
+
+            # Step 4: Classify resume category
+            from app.ml.resume_classifier import resume_classifier
+            model_dir = app.config.get('MODEL_DIR', 'ml_models')
+            if not resume_classifier.is_loaded:
+                resume_classifier.load_model(model_dir)
+
+            category, confidence = resume_classifier.predict(cleaned_text)
+
+            # Step 5: Compute embedding vector
+            embedding_bytes = None
+            try:
+                from app.ml.embedding_service import embedding_service
+                embedding_vector = embedding_service.encode(cleaned_text)
+                embedding_bytes = embedding_vector.tobytes()
+            except Exception as e:
+                app.logger.warning(f'Embedding computation failed: {e}')
+
+            # Step 6: Store structured data
+            resume.raw_text = raw_text
+            resume.cleaned_text = cleaned_text
+            resume.classified_category = category
+            resume.classification_confidence = confidence
+            resume.embedding = embedding_bytes
+            resume.parsed_data = features
+
+            _store_skills(resume, features.get('skills', []))
+            _store_education(resume, features.get('education', []))
+            _store_experience(resume, features.get('experience', []))
+            _store_certifications(resume, features.get('certifications', []))
+            _store_projects(resume, features.get('projects', []))
+
+            resume.processing_status = 'completed'
+            db.session.commit()
+
+        except Exception as e:
+            db.session.rollback()
+            resume = db.session.get(Resume, resume_id)
+            if resume:
+                resume.processing_status = 'failed'
+                resume.processing_error = str(e)
+                db.session.commit()
+
+
+def process_resume_upload(candidate, file, target_role=None):
+    """
+    Resume upload pipeline with immediate response and async ML background processing.
     """
     # Step 0: Validate file
     is_valid, error = validate_resume_file(file)
@@ -56,55 +133,28 @@ def process_resume_upload(candidate, file):
 
         file_ext = filename.rsplit('.', 1)[1].lower()
 
-        # Step 2: Extract raw text
-        raw_text = resume_parser.parse(file_path)
-        if not raw_text or len(raw_text.strip()) < 20:
-            return False, 'Could not extract text from the uploaded file. Please try a different file.'
-
-        # Step 3: Clean and preprocess text
-        cleaned_text = text_preprocessor.preprocess(raw_text)
-
-        # Step 4: Extract features
-        features = feature_extractor.extract_all(raw_text)
-
-        # Step 5: Classify resume category
-        # Load the model if not already loaded
-        model_dir = current_app.config.get('MODEL_DIR', 'ml_models')
-        if not resume_classifier.is_loaded:
-            resume_classifier.load_model(model_dir)
-
-        category, confidence = resume_classifier.predict(cleaned_text)
-
-        # Step 6: Deactivate previous resumes
+        # Step 2: Deactivate previous resumes
         Resume.query.filter_by(
             candidate_id=candidate.id,
             is_active=True
         ).update({'is_active': False})
 
-        # Step 7: Create Resume record
+        # Step 3: Create initial Resume record with 'pending' status
         resume = Resume(
             candidate_id=candidate.id,
             file_path=file_path,
             file_name=filename,
             file_type=file_ext,
-            raw_text=raw_text,
-            cleaned_text=cleaned_text,
-            classified_category=category,
-            classification_confidence=confidence,
-            parsed_data=features,
             is_active=True,
+            target_role=target_role.strip() if target_role else None,
+            processing_status='pending',
         )
         db.session.add(resume)
-        db.session.flush()  # Get resume.id
-
-        # Step 8: Store structured features in related tables
-        _store_skills(resume, features.get('skills', []))
-        _store_education(resume, features.get('education', []))
-        _store_experience(resume, features.get('experience', []))
-        _store_certifications(resume, features.get('certifications', []))
-        _store_projects(resume, features.get('projects', []))
-
         db.session.commit()
+
+        # Step 4: Submit heavy ML processing to background thread pool (Directive 2 Fix)
+        app_obj = current_app._get_current_object()
+        _executor.submit(_background_process_resume, app_obj, resume.id, file_path)
 
         return True, resume
 
@@ -121,7 +171,7 @@ def get_resume_data_for_matching(resume):
         resume: Resume model instance.
 
     Returns:
-        Dict with cleaned_text, skills, education, experience, category.
+        Dict with cleaned_text, embedding, skills, education, experience, category.
     """
     skills = [rs.skill.name for rs in resume.skills.all() if rs.skill]
     education = [
@@ -143,8 +193,17 @@ def get_resume_data_for_matching(resume):
         for exp in resume.experience.all()
     ]
 
+    # Deserialize embedding if available
+    embedding = None
+    if resume.embedding:
+        try:
+            embedding = np.frombuffer(resume.embedding, dtype=np.float32)
+        except Exception:
+            pass
+
     return {
         'cleaned_text': resume.cleaned_text or '',
+        'embedding': embedding,
         'skills': skills,
         'education': education,
         'experience': experience,

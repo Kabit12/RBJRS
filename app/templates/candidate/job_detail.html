@@ -21,7 +21,7 @@
             <div class="flex gap-4 mb-6" style="flex-wrap:wrap;">
                 {% if job.job_type %}<span class="badge badge-primary">{{ job.job_type }}</span>{% endif %}
                 {% if job.experience_level %}<span class="badge badge-neutral">{{ job.experience_level }}</span>{% endif %}
-                {% if job.salary_range %}<span class="badge badge-success">💰 {{ job.salary_range }}</span>{% endif %}
+                {% if job.salary_min or job.salary_max %}<span class="badge badge-success">💰 {{ job.salary_display }}</span>{% endif %}
                 {% if job.classified_category %}<span class="badge badge-warning">{{ job.classified_category }}</span>{% endif %}
             </div>
             <h4 class="mb-4">Description</h4>
@@ -80,12 +80,35 @@
             </div>
             {% else %}
             <h4 class="mb-4">Apply for this Job</h4>
-            <form method="POST" action="{{ url_for('candidate.apply_job', job_id=job.id) }}">
+            <form method="POST" action="{{ url_for('candidate.apply_job', job_id=job.id) }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                {# Resume Selector #}
+                {% if all_resumes and all_resumes|length > 1 %}
                 <div class="form-group">
-                    <label class="form-label">Cover Letter (optional)</label>
+                    <label class="form-label">Select Resume</label>
+                    <select name="resume_id" class="form-control">
+                        {% for r in all_resumes %}
+                        <option value="{{ r.id }}" {{ 'selected' if r.is_active else '' }}>
+                            {{ r.file_name }}{% if r.target_role %} ({{ r.target_role }}){% endif %}{% if r.is_active %} — Active{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <span class="form-text">Choose which resume to send with this application.</span>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label class="form-label">Cover Letter Text (optional)</label>
                     <textarea name="cover_letter" class="form-control" rows="4" placeholder="Tell the recruiter why you're a great fit..."></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label">Upload Cover Letter File (optional)</label>
+                    <input type="file" name="cover_letter_file" class="form-control" accept=".pdf,.docx" style="padding:0.5rem;">
+                    <span class="form-text">PDF or DOCX. You can upload a file AND write text above.</span>
+                </div>
+
                 <button type="submit" class="btn btn-primary btn-block">Submit Application</button>
             </form>
             {% endif %}

@@ -44,6 +44,9 @@ class Recruiter(db.Model):
     company_size = db.Column(db.String(50))  # e.g., "1-10", "11-50", "51-200", "201-500", "500+"
     company_description = db.Column(db.Text)
 
+    # Approval Status (admin must approve before recruiter can use platform)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)
+
     # Recruiter Contact
     phone = db.Column(db.String(20))
     location = db.Column(db.String(255))

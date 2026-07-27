@@ -23,7 +23,34 @@ This is the third step in the processing pipeline:
 """
 
 import re
+import logging
 from collections import defaultdict
+
+logger = logging.getLogger(__name__)
+
+# Directive 3 Fix: spaCy NLP for Named Entity Recognition (NER)
+_nlp = None
+
+def _get_nlp():
+    global _nlp
+    if _nlp is None:
+        try:
+            import spacy
+            try:
+                _nlp = spacy.load('en_core_web_sm')
+            except Exception:
+                _nlp = spacy.blank('en')
+        except Exception as e:
+            logger.warning(f'spaCy load failed, falling back to rule-based NLP: {e}')
+            _nlp = False
+    return _nlp if _nlp is not False else None
+
+
+# Negative context patterns to avoid extracting skills candidate explicitly denies having
+NEGATIVE_PREFIXES = re.compile(
+    r'\b(?:no|none|lack|without|not|never|neither|nor|don\'t|doesn\'t|did\'t)\s+(?:experience|knowledge|proficiency|familiarity|skills?)?\s*(?:in|with|of)?\s*$',
+    re.IGNORECASE
+)
 
 
 # Comprehensive skill dictionary organized by category
@@ -133,23 +160,12 @@ SECTION_HEADERS = {
 
 class FeatureExtractor:
     """
-    Extracts structured features from resume text.
-
-    Usage:
-        extractor = FeatureExtractor()
-        features = extractor.extract_all(resume_text)
+    Extracts structured features from resume text using spaCy NER and pattern matching.
     """
 
     def extract_all(self, text):
         """
         Extract all features from resume text.
-
-        Args:
-            text: Raw or cleaned resume text.
-
-        Returns:
-            Dictionary with keys: skills, education, experience,
-            certifications, projects
         """
         if not text:
             return {
@@ -163,26 +179,21 @@ class FeatureExtractor:
         text_lower = text.lower()
         sections = self._identify_sections(text)
 
+        # Run spaCy NER if available
+        nlp = _get_nlp()
+        doc = nlp(text) if nlp else None
+
         return {
-            'skills': self.extract_skills(text_lower),
-            'education': self.extract_education(text, sections.get('education', '')),
-            'experience': self.extract_experience(text, sections.get('experience', '')),
+            'skills': self.extract_skills(text_lower, doc=doc),
+            'education': self.extract_education(text, sections.get('education', ''), doc=doc),
+            'experience': self.extract_experience(text, sections.get('experience', ''), doc=doc),
             'certifications': self.extract_certifications(text, sections.get('certifications', '')),
             'projects': self.extract_projects(text, sections.get('projects', '')),
         }
 
-    def extract_skills(self, text):
+    def extract_skills(self, text, doc=None):
         """
-        Extract skills by matching against the skill database.
-
-        Uses word-boundary matching to avoid false positives
-        (e.g., "class" inside "classification").
-
-        Args:
-            text: Lowercase resume text.
-
-        Returns:
-            List of dicts with 'name' and 'category' keys.
+        Extract skills by matching against skill database, with negative context checking and spaCy NER.
         """
         text_lower = text.lower()
         found_skills = []
@@ -193,25 +204,20 @@ class FeatureExtractor:
                 if skill in seen:
                     continue
 
-                # Use word boundary matching for single words,
-                # substring matching for multi-word skills
-                if ' ' in skill or '.' in skill or '+' in skill or '#' in skill:
-                    # Multi-word or special character skills: use simple containment
-                    if skill in text_lower:
-                        found_skills.append({
-                            'name': skill,
-                            'category': category,
-                        })
-                        seen.add(skill)
-                else:
-                    # Single word skills: use word boundary to avoid partial matches
-                    pattern = r'\b' + re.escape(skill) + r'\b'
-                    if re.search(pattern, text_lower):
-                        found_skills.append({
-                            'name': skill,
-                            'category': category,
-                        })
-                        seen.add(skill)
+                pattern = r'\b' + re.escape(skill) + r'\b' if (' ' not in skill and '.' not in skill and '+' not in skill and '#' not in skill) else re.escape(skill)
+                for match in re.finditer(pattern, text_lower):
+                    start = match.start()
+                    prefix_window = text_lower[max(0, start - 40):start]
+                    # Check negative context (e.g. "no experience in python")
+                    if NEGATIVE_PREFIXES.search(prefix_window):
+                        continue
+
+                    found_skills.append({
+                        'name': skill,
+                        'category': category,
+                    })
+                    seen.add(skill)
+                    break
 
         return found_skills
 

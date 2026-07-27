@@ -10,8 +10,8 @@ It's used to:
 3. Display match quality on dashboards
 4. Filter recommendations (only show scores above threshold)
 
-Score Formula:
-    overall = 0.40 × cosine_similarity + 0.30 × skill_score
+Score Formula (v2 — embedding-based):
+    overall = 0.40 × embedding_similarity + 0.30 × skill_score
             + 0.15 × education_score + 0.15 × experience_score
 """
 
@@ -73,12 +73,12 @@ def format_score_percentage(score):
     return f'{score * 100:.1f}%'
 
 
-def compute_overall_score(cosine_sim, skill_score, education_score, experience_score):
+def compute_overall_score(embedding_sim, skill_score, education_score, experience_score):
     """
     Compute the final Job Fit Score from component scores.
 
     Args:
-        cosine_sim: TF-IDF cosine similarity (0-1)
+        embedding_sim: Embedding cosine similarity (0-1)
         skill_score: Skill matching score (0-1)
         education_score: Education matching score (0-1)
         experience_score: Experience matching score (0-1)
@@ -87,7 +87,7 @@ def compute_overall_score(cosine_sim, skill_score, education_score, experience_s
         Overall score clamped to [0.0, 1.0]
     """
     score = (
-        0.40 * cosine_sim +
+        0.40 * embedding_sim +
         0.30 * skill_score +
         0.15 * education_score +
         0.15 * experience_score

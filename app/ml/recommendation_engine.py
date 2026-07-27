@@ -1,50 +1,52 @@
 """
-Recommendation Engine Module
-==============================
+Recommendation Engine Module (v2 — Embedding-Based)
+=====================================================
 Core matching engine that recommends jobs to candidates and ranks candidates for jobs.
 
-Algorithm (as specified in the implementation plan):
+REWRITTEN from the old TF-IDF refit-per-request approach to use:
+1. Sentence-transformer embeddings (384-dim, computed ONCE per text)
+2. FAISS index for fast nearest neighbor search (milliseconds, not seconds)
+3. Multi-signal scoring: embedding similarity + skill matching + education + experience
 
-Step 1: TF-IDF Vectorization
-    Resume Text → TF-IDF Vector (R)
-    Job Text → TF-IDF Vector (J)
+Architecture Change (v1 → v2):
+    v1: TF-IDF fit_transform() on EVERY request → inconsistent vectors, O(N²), slow
+    v2: Pre-computed embeddings → FAISS search → structured signal scoring → fast, consistent
 
-Step 2: Cosine Similarity
-    similarity(R, J) = (R · J) / (||R|| × ||J||)
-
-Step 3: Component Scoring
-    skill_score = weighted_jaccard(resume_skills, job_required_skills)
-    education_score = education_level_match(resume_edu, job_edu_requirement)
-    experience_score = experience_years_match(resume_exp, job_exp_requirement)
-
-Step 4: Job Fit Score
-    job_fit_score = 0.4 × cosine_similarity + 0.3 × skill_score
-                  + 0.15 × education_score + 0.15 × experience_score
-
-Step 5: KNN Refinement
-    Find K nearest job vectors to resume vector
-    Combine with cosine similarity rankings
+Score Formula:
+    overall = 0.40 × embedding_similarity
+            + 0.30 × skill_score
+            + 0.15 × education_score
+            + 0.15 × experience_score
+            + category_bonus (0.10 if category matches)
 
 Design Decisions:
-- Cosine similarity is the primary matching metric because it's scale-invariant
-  and works well with TF-IDF vectors (both resume and job texts).
-- KNN refines the ranking by finding structurally similar jobs in the TF-IDF space.
-- The weighted scoring formula gives highest weight to text similarity (0.4) and
-  skills (0.3) because these are the strongest predictors of job fit.
-- Education and experience each get 0.15 weight as supporting factors.
+- Embedding similarity gets the highest weight (0.40) because sentence-transformers
+  capture semantic meaning far better than TF-IDF keyword overlap.
+- Skill score weight (0.30) is still high because explicit skill matching
+  is a strong signal that candidates and recruiters care about.
+- Category bonus reduced from 0.15 to 0.10 because embeddings already capture
+  domain similarity, making the explicit category bonus less necessary.
+- The engine is split into focused components:
+    - EmbeddingService: text → vector (embedding_service.py)
+    - JobIndex: vector search (job_index.py)
+    - RecommendationEngine: orchestrates scoring (this file)
 """
 
+import re
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.neighbors import NearestNeighbors
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Score component weights (must sum to 1.0)
-WEIGHT_COSINE = 0.40
+WEIGHT_EMBEDDING = 0.40
 WEIGHT_SKILL = 0.30
 WEIGHT_EDUCATION = 0.15
 WEIGHT_EXPERIENCE = 0.15
+
+# Category bonus when resume and job share the same classified category
+CATEGORY_BONUS = 0.10
 
 # Education level hierarchy for scoring
 EDUCATION_LEVELS = {
@@ -52,7 +54,9 @@ EDUCATION_LEVELS = {
     'diploma': 2,
     'associate': 2,
     "bachelor's": 3,
+    "bachelor": 3,
     "master's": 4,
+    "master": 4,
     'doctorate': 5,
     'phd': 5,
     'other': 2,
@@ -63,6 +67,7 @@ EXPERIENCE_LEVELS = {
     'entry': (0, 2),
     'entry level': (0, 2),
     'junior': (0, 3),
+    'fresher': (0, 1),
     'mid': (2, 5),
     'mid level': (2, 5),
     'mid-level': (2, 5),
@@ -74,13 +79,65 @@ EXPERIENCE_LEVELS = {
     'vp': (12, 25),
 }
 
+# Skill synonyms — maps variant names to a canonical form
+SKILL_SYNONYMS = {
+    'react.js': 'react', 'reactjs': 'react', 'react js': 'react',
+    'vue.js': 'vue', 'vuejs': 'vue', 'vue js': 'vue',
+    'node.js': 'nodejs', 'node js': 'nodejs',
+    'next.js': 'nextjs', 'next js': 'nextjs',
+    'angular.js': 'angular', 'angularjs': 'angular',
+    'express.js': 'express', 'expressjs': 'express',
+    'three.js': 'threejs',
+    'c++': 'cpp', 'cplusplus': 'cpp',
+    'c#': 'csharp', 'c sharp': 'csharp',
+    'objective-c': 'objectivec', 'obj-c': 'objectivec',
+    '.net': 'dotnet', 'dot net': 'dotnet', '.net core': 'dotnet',
+    'asp.net': 'aspnet',
+    'scikit-learn': 'sklearn', 'scikit learn': 'sklearn',
+    'postgresql': 'postgres', 'postgre': 'postgres',
+    'mongo': 'mongodb', 'mongo db': 'mongodb',
+    'sql server': 'mssql', 'microsoft sql server': 'mssql',
+    'amazon web services': 'aws',
+    'google cloud platform': 'gcp', 'google cloud': 'gcp',
+    'microsoft azure': 'azure',
+    'machine learning': 'ml',
+    'deep learning': 'dl',
+    'natural language processing': 'nlp',
+    'artificial intelligence': 'ai',
+    'ci/cd': 'cicd', 'ci cd': 'cicd',
+    'devops': 'devops', 'dev ops': 'devops',
+    'html5': 'html', 'html 5': 'html',
+    'css3': 'css', 'css 3': 'css',
+    'javascript': 'js', 'java script': 'js',
+    'typescript': 'ts', 'type script': 'ts',
+    'ruby on rails': 'rails', 'ror': 'rails',
+    'spring boot': 'springboot',
+    'power bi': 'powerbi',
+    'tailwind css': 'tailwind', 'tailwindcss': 'tailwind',
+    'material ui': 'materialui', 'mui': 'materialui',
+    # Added modern tech synonyms
+    'langchain': 'langchain', 'lang chain': 'langchain',
+    'react 18': 'react', 'react 19': 'react',
+    'next.js 14': 'nextjs', 'next.js 15': 'nextjs',
+    'python3': 'python', 'python 3': 'python',
+    'go lang': 'golang', 'go language': 'golang',
+}
+
+
+def _normalize_skill(skill_name):
+    """Normalize a skill name: lowercase, strip, and apply synonym mapping."""
+    if not isinstance(skill_name, str):
+        skill_name = skill_name.get('name', '') if isinstance(skill_name, dict) else str(skill_name)
+    normalized = skill_name.lower().strip()
+    return SKILL_SYNONYMS.get(normalized, normalized)
+
 
 class RecommendationEngine:
     """
     Core recommendation engine for job-resume matching.
 
-    Computes multi-factor similarity scores between resumes and jobs
-    using TF-IDF cosine similarity, skill matching, and KNN refinement.
+    Uses embedding similarity (from sentence-transformers) combined with
+    structured signals (skills, education, experience) for scoring.
 
     Usage:
         engine = RecommendationEngine()
@@ -89,13 +146,15 @@ class RecommendationEngine:
     """
 
     def __init__(self):
-        self.vectorizer = TfidfVectorizer(
-            max_features=5000,
-            ngram_range=(1, 2),
-            min_df=1,
-            max_df=0.95,
-            sublinear_tf=True,
-        )
+        # Lazy imports to avoid circular dependencies and cold-start blocking
+        self._embedding_service = None
+
+    def _get_embedding_service(self):
+        """Lazy-load the embedding service."""
+        if self._embedding_service is None:
+            from app.ml.embedding_service import embedding_service
+            self._embedding_service = embedding_service
+        return self._embedding_service
 
     def recommend_jobs(self, resume_data, jobs_data, top_n=10):
         """
@@ -104,6 +163,7 @@ class RecommendationEngine:
         Args:
             resume_data: Dict with keys:
                 - cleaned_text: Preprocessed resume text
+                - embedding: Pre-computed embedding vector (optional)
                 - skills: List of skill names
                 - education: List of education entries
                 - experience: List of experience entries
@@ -124,25 +184,34 @@ class RecommendationEngine:
         if not jobs_data or not resume_data.get('cleaned_text'):
             return []
 
-        # Step 1: TF-IDF Vectorization
-        all_texts = [resume_data['cleaned_text']] + [j['combined_text'] for j in jobs_data]
         try:
-            tfidf_matrix = self.vectorizer.fit_transform(all_texts)
-        except ValueError:
-            return []
+            embedding_svc = self._get_embedding_service()
 
-        resume_vector = tfidf_matrix[0:1]
-        job_vectors = tfidf_matrix[1:]
+            # Step 1: Get or compute resume embedding
+            resume_embedding = resume_data.get('embedding')
+            if resume_embedding is None:
+                resume_embedding = embedding_svc.encode(resume_data['cleaned_text'])
 
-        # Step 2: Cosine Similarity
-        cosine_scores = cosine_similarity(resume_vector, job_vectors)[0]
+            # Step 2: Use FAISS vector search index (Directive 3 Fix)
+            from app.ml.job_index import job_index
+            job_map = {j['id']: j for j in jobs_data}
 
-        # Step 5: KNN Refinement
-        knn_scores = self._compute_knn_scores(resume_vector, job_vectors, k=min(5, len(jobs_data)))
+            if not job_index.is_built or job_index.size == 0:
+                job_texts = [j['combined_text'] for j in jobs_data]
+                job_embeddings = embedding_svc.encode_batch(job_texts)
+                job_index.build([j['id'] for j in jobs_data], job_embeddings)
+
+            # Query FAISS nearest neighbors
+            faiss_scores, faiss_job_ids = job_index.search(resume_embedding, top_k=min(top_n * 3, len(jobs_data)))
+            embedding_scores = dict(zip(faiss_job_ids, faiss_scores))
+
+        except Exception as e:
+            logger.error(f'Embedding computation failed, falling back to zero scores: {e}')
+            embedding_scores = {}
 
         recommendations = []
         for i, job in enumerate(jobs_data):
-            # Step 3: Component Scoring
+            # Structured signal scoring (kept from v1, these are reliable)
             skill_score = self._compute_skill_score(
                 resume_data.get('skills', []),
                 job.get('required_skills', [])
@@ -156,21 +225,17 @@ class RecommendationEngine:
                 job.get('experience_level', '')
             )
 
-            # Category bonus: boost score if resume and job are in the same category
+            # Category bonus
             category_bonus = 0.0
             if (resume_data.get('category') and job.get('category') and
                     resume_data['category'] == job['category']):
-                category_bonus = 0.1
+                category_bonus = CATEGORY_BONUS
 
-            # Step 4: Job Fit Score
-            cosine_val = float(cosine_scores[i])
-            knn_val = float(knn_scores[i]) if knn_scores is not None else cosine_val
-
-            # Blend cosine and KNN scores
-            text_score = 0.7 * cosine_val + 0.3 * knn_val
+            # Overall score
+            emb_val = max(0.0, float(embedding_scores.get(job['id'], 0.0)))
 
             overall_score = (
-                WEIGHT_COSINE * text_score +
+                WEIGHT_EMBEDDING * emb_val +
                 WEIGHT_SKILL * skill_score +
                 WEIGHT_EDUCATION * education_score +
                 WEIGHT_EXPERIENCE * experience_score +
@@ -192,9 +257,7 @@ class RecommendationEngine:
                 'experience_score': round(experience_score, 4),
                 'education_score': round(education_score, 4),
                 'score_breakdown': {
-                    'cosine_similarity': round(cosine_val, 4),
-                    'knn_score': round(float(knn_val), 4),
-                    'text_score': round(text_score, 4),
+                    'embedding_similarity': round(emb_val, 4),
                     'skill_score': round(skill_score, 4),
                     'education_score': round(education_score, 4),
                     'experience_score': round(experience_score, 4),
@@ -223,16 +286,22 @@ class RecommendationEngine:
         if not candidates_data or not job_data.get('combined_text'):
             return []
 
-        all_texts = [job_data['combined_text']] + [c.get('cleaned_text', '') for c in candidates_data]
         try:
-            tfidf_matrix = self.vectorizer.fit_transform(all_texts)
-        except ValueError:
-            return []
+            embedding_svc = self._get_embedding_service()
 
-        job_vector = tfidf_matrix[0:1]
-        candidate_vectors = tfidf_matrix[1:]
+            # Compute job embedding
+            job_embedding = embedding_svc.encode(job_data['combined_text'])
 
-        cosine_scores = cosine_similarity(job_vector, candidate_vectors)[0]
+            # Compute candidate embeddings
+            candidate_texts = [c.get('cleaned_text', '') for c in candidates_data]
+            candidate_embeddings = embedding_svc.encode_batch(candidate_texts)
+
+            # Embedding similarities
+            embedding_scores = np.dot(candidate_embeddings, job_embedding)
+
+        except Exception as e:
+            logger.error(f'Embedding computation failed for ranking: {e}')
+            embedding_scores = np.zeros(len(candidates_data))
 
         rankings = []
         for i, candidate in enumerate(candidates_data):
@@ -249,13 +318,20 @@ class RecommendationEngine:
                 job_data.get('experience_level', '')
             )
 
-            cosine_val = float(cosine_scores[i])
+            emb_val = max(0.0, float(embedding_scores[i]))
+
+            # Category bonus
+            category_bonus = 0.0
+            if (candidate.get('category') and job_data.get('category') and
+                    candidate['category'] == job_data['category']):
+                category_bonus = CATEGORY_BONUS
 
             overall_score = (
-                WEIGHT_COSINE * cosine_val +
+                WEIGHT_EMBEDDING * emb_val +
                 WEIGHT_SKILL * skill_score +
                 WEIGHT_EDUCATION * education_score +
-                WEIGHT_EXPERIENCE * experience_score
+                WEIGHT_EXPERIENCE * experience_score +
+                category_bonus
             )
             overall_score = min(1.0, max(0.0, overall_score))
 
@@ -265,94 +341,64 @@ class RecommendationEngine:
                 'skill_score': round(skill_score, 4),
                 'experience_score': round(experience_score, 4),
                 'education_score': round(education_score, 4),
-                'cosine_similarity': round(cosine_val, 4),
+                'cosine_similarity': round(emb_val, 4),
             })
 
         rankings.sort(key=lambda x: x['overall_score'], reverse=True)
         return rankings[:top_n]
 
-    def _compute_knn_scores(self, resume_vector, job_vectors, k=5):
-        """
-        Compute KNN-based similarity scores.
-
-        Finds the K nearest job vectors to the resume vector and
-        converts distances to similarity scores.
-
-        Args:
-            resume_vector: Sparse TF-IDF vector for the resume.
-            job_vectors: Sparse TF-IDF matrix for all jobs.
-            k: Number of nearest neighbors.
-
-        Returns:
-            Array of similarity scores (1 / (1 + distance)).
-        """
-        if job_vectors.shape[0] < k:
-            k = job_vectors.shape[0]
-
-        if k == 0:
-            return None
-
-        try:
-            knn = NearestNeighbors(n_neighbors=k, metric='cosine', algorithm='brute')
-            knn.fit(job_vectors)
-            distances, indices = knn.kneighbors(resume_vector)
-
-            # Initialize scores with zeros
-            scores = np.zeros(job_vectors.shape[0])
-
-            # Convert distances to similarity scores for KNN neighbors
-            for dist, idx in zip(distances[0], indices[0]):
-                scores[idx] = 1.0 - dist  # cosine distance to similarity
-
-            # For non-neighbors, use a baseline score
-            baseline = float(np.mean(scores[scores > 0])) * 0.5 if np.any(scores > 0) else 0.0
-            scores[scores == 0] = baseline
-
-            return scores
-
-        except Exception as e:
-            print(f'KNN computation error: {e}')
-            return None
-
     @staticmethod
     def _compute_skill_score(resume_skills, job_skills):
         """
-        Compute weighted Jaccard similarity between resume and job skills.
+        Compute continuous soft-margin skill match score (Directive 5 Fix).
 
-        Weighted Jaccard gives more credit for matching required skills
-        vs. having extra unrelated skills.
-
-        Args:
-            resume_skills: List of skill name strings from resume.
-            job_skills: List of skill name strings required by job.
-
-        Returns:
-            Float between 0.0 and 1.0
+        Uses synonym mapping and partial matching followed by a smooth power-scaling curve
+        (coverage^0.75) instead of hardcoded step functions.
         """
         if not job_skills:
             return 0.5  # No requirements specified → neutral score
 
-        resume_set = set(s.lower() if isinstance(s, str) else s.get('name', '').lower()
-                         for s in resume_skills)
-        job_set = set(s.lower() if isinstance(s, str) else s.get('name', '').lower()
-                      for s in job_skills)
+        # Normalize all skills through synonym mapping
+        resume_set = set(_normalize_skill(s) for s in resume_skills)
+        job_set = set(_normalize_skill(s) for s in job_skills)
+
+        # Remove empty strings
+        resume_set.discard('')
+        job_set.discard('')
 
         if not job_set:
             return 0.5
 
-        # How many required skills does the candidate have?
+        # Direct match
         matched = resume_set & job_set
+
+        # Partial/substring matching for remaining unmatched job skills
+        unmatched_job = job_set - matched
+        for job_skill in list(unmatched_job):
+            for resume_skill in resume_set:
+                if (job_skill in resume_skill or resume_skill in job_skill) and \
+                   len(min(job_skill, resume_skill, key=len)) >= 3:
+                    matched.add(job_skill)
+                    unmatched_job.discard(job_skill)
+                    break
+
+        # Coverage: percentage of required skills matched
         coverage = len(matched) / len(job_set)
 
-        return min(1.0, coverage)
+        # Directive 5 Fix: Smooth continuous soft-margin curve without hardcoded step jumps
+        return min(1.0, max(0.0, round(float(coverage ** 0.75), 4)))
 
     @staticmethod
     def _compute_education_score(resume_education, job_experience_level):
         """
         Compute education match score.
 
-        Higher education levels get slightly higher scores.
-        If no education data is available, returns a neutral 0.5.
+        Scoring:
+        - Certificate/Diploma → 0.5
+        - Bachelor's → 0.7
+        - Master's → 0.9
+        - Doctorate → 1.0
+        - No education data → 0.4
 
         Args:
             resume_education: List of education entry dicts.
@@ -362,25 +408,33 @@ class RecommendationEngine:
             Float between 0.0 and 1.0
         """
         if not resume_education:
-            return 0.3  # No education data → low score
+            return 0.4  # No education data → moderate score
 
         # Find the highest education level
         max_level = 0
         for edu in resume_education:
-            degree = edu.get('degree', 'Other')
-            level = EDUCATION_LEVELS.get(degree.lower(), 2)
+            degree = edu.get('degree', 'Other') or 'Other'
+            degree_lower = degree.lower().strip()
+            level = EDUCATION_LEVELS.get(degree_lower, 2)
             max_level = max(max_level, level)
 
-        # Normalize to 0-1 range (5 levels)
-        return min(1.0, max_level / 5.0)
+        # Map levels to scores
+        level_scores = {
+            0: 0.4,   # No data
+            1: 0.5,   # Certificate
+            2: 0.55,  # Diploma/Associate
+            3: 0.7,   # Bachelor's
+            4: 0.9,   # Master's
+            5: 1.0,   # Doctorate/PhD
+        }
+        return level_scores.get(max_level, 0.5)
 
     @staticmethod
     def _compute_experience_score(resume_experience, job_experience_level):
         """
         Compute experience match score.
 
-        Estimates years of experience from resume entries and compares
-        to job requirements.
+        Parses actual date ranges from experience entries.
 
         Args:
             resume_experience: List of experience entry dicts.
@@ -390,32 +444,55 @@ class RecommendationEngine:
             Float between 0.0 and 1.0
         """
         if not resume_experience:
-            return 0.3  # No experience data → low score
+            return 0.4  # No experience data → moderate score
 
-        # Estimate total years from number of positions
-        # (rough heuristic: average 2 years per position)
-        estimated_years = len(resume_experience) * 2
+        # Estimate total years from experience entries
+        estimated_years = 0
+        for exp in resume_experience:
+            start = exp.get('start_date', '')
+            end = exp.get('end_date', '')
+
+            years = _estimate_duration_years(start, end)
+            if years > 0:
+                estimated_years += years
+            else:
+                # Fallback: assume ~2 years per position if dates can't be parsed
+                estimated_years += 2
 
         # If job specifies experience level, match against it
         if job_experience_level:
             level_key = job_experience_level.lower().strip()
-            if level_key in EXPERIENCE_LEVELS:
-                min_years, max_years = EXPERIENCE_LEVELS[level_key]
-                if estimated_years >= min_years:
-                    return min(1.0, 0.6 + (estimated_years - min_years) / (max_years - min_years + 1) * 0.4)
-                else:
-                    return max(0.1, estimated_years / min_years * 0.6)
 
-        # Default: more experience → higher score (capped)
-        return min(1.0, 0.3 + estimated_years * 0.07)
+            # Try to extract years from strings like "2-5 years", "3+ years"
+            year_match = re.search(r'(\d+)\s*[-–to]+\s*(\d+)', level_key)
+            year_match_plus = re.search(r'(\d+)\s*\+?\s*years?', level_key)
+
+            if year_match:
+                min_years = int(year_match.group(1))
+                max_years = int(year_match.group(2))
+            elif year_match_plus:
+                min_years = int(year_match_plus.group(1))
+                max_years = min_years + 5
+            elif level_key in EXPERIENCE_LEVELS:
+                min_years, max_years = EXPERIENCE_LEVELS[level_key]
+            else:
+                # Default: more experience → higher score
+                return min(1.0, 0.4 + estimated_years * 0.08)
+
+            if estimated_years >= min_years:
+                ratio = min(1.0, (estimated_years - min_years) / max(1, max_years - min_years))
+                return min(1.0, 0.7 + ratio * 0.3)
+            else:
+                ratio = estimated_years / max(1, min_years)
+                return max(0.2, 0.3 + ratio * 0.4)
+
+        # Default: more experience → higher score (capped at 1.0)
+        return min(1.0, 0.4 + estimated_years * 0.08)
 
     @staticmethod
     def _generate_feedback(resume_data, job_data, skill_score, edu_score, exp_score):
         """
         Generate human-readable strengths and improvement suggestions.
-
-        This implements the proposal requirement (Section 3.2.4) for
-        providing actionable feedback on candidate profiles.
 
         Returns:
             Tuple of (strengths: list, improvements: list)
@@ -424,14 +501,8 @@ class RecommendationEngine:
         improvements = []
 
         # Skill feedback
-        resume_skills = set(
-            s.lower() if isinstance(s, str) else s.get('name', '').lower()
-            for s in resume_data.get('skills', [])
-        )
-        job_skills = set(
-            s.lower() if isinstance(s, str) else s.get('name', '').lower()
-            for s in job_data.get('required_skills', [])
-        )
+        resume_skills = set(_normalize_skill(s) for s in resume_data.get('skills', []))
+        job_skills = set(_normalize_skill(s) for s in job_data.get('required_skills', []))
 
         matched_skills = resume_skills & job_skills
         missing_skills = job_skills - resume_skills
@@ -452,7 +523,7 @@ class RecommendationEngine:
         # Education feedback
         if edu_score >= 0.8:
             strengths.append("Strong educational background")
-        elif edu_score < 0.4:
+        elif edu_score < 0.5:
             improvements.append("Consider pursuing additional qualifications or certifications")
 
         # Experience feedback
@@ -473,6 +544,47 @@ class RecommendationEngine:
             improvements.append("Continue building your portfolio and skills")
 
         return strengths[:5], improvements[:5]
+
+
+def _estimate_duration_years(start_str, end_str):
+    """
+    Estimate duration in years from start/end date strings.
+
+    Handles formats like:
+    - "Jan 2020" / "January 2020"
+    - "2020" (just year)
+    - "Present" / "Current"
+
+    Returns estimated years (float), or 0 if parsing fails.
+    """
+    if not start_str:
+        return 0
+
+    from datetime import datetime
+
+    def parse_year(date_str):
+        if not date_str:
+            return None
+        date_str = date_str.strip().lower()
+        if date_str in ('present', 'current', 'now', 'ongoing'):
+            return datetime.now().year
+
+        # Try to extract a 4-digit year
+        year_match = re.search(r'(\d{4})', date_str)
+        if year_match:
+            return int(year_match.group(1))
+        return None
+
+    start_year = parse_year(start_str)
+    end_year = parse_year(end_str)
+
+    if start_year and end_year:
+        return max(0, end_year - start_year)
+    elif start_year:
+        # No end date, assume current
+        return max(0, datetime.now().year - start_year)
+
+    return 0
 
 
 # Singleton instance

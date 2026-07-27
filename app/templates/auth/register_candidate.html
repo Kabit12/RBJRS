@@ -83,6 +83,30 @@
             <button type="submit" class="btn btn-primary btn-lg btn-block">Create Account</button>
         </form>
 
+        {% if google_client_id %}
+        <div style="margin-top:1.5rem; text-align:center;">
+            <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+                <hr style="flex:1; border:none; border-top:1px solid var(--color-border);">
+                <span class="text-xs text-muted">OR</span>
+                <hr style="flex:1; border:none; border-top:1px solid var(--color-border);">
+            </div>
+            <div id="g_id_onload"
+                 data-client_id="{{ google_client_id }}"
+                 data-login_uri="{{ url_for('auth.google_callback', _external=True) }}"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="signup_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left"
+                 data-width="380">
+            </div>
+        </div>
+        {% endif %}
+
         <div class="auth-footer">
             Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
             · <a href="{{ url_for('auth.register') }}">Choose different role</a>
@@ -90,3 +114,10 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+{% if google_client_id %}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+{% endif %}
+{% endblock %}
+
