@@ -1,41 +1,41 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Admin Dashboard{% endblock %}
-{% block page_title %}⚡ Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
 {% block page_subtitle %}Platform overview and management.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Administration</div>
-    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link"><span class="icon">👥</span> Users</a>
-    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Jobs</a>
-    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link"><span class="icon">📈</span> Analytics</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link active"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link"><span class="icon"><i data-lucide="users"></i></span> Users</a>
+    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Jobs</a>
+    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link"><span class="icon"><i data-lucide="trending-up"></i></span> Analytics</a>
 </div>
 <div class="sidebar-section">
     <div class="sidebar-section-title">Account</div>
-    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon"><i data-lucide="log-out"></i></span> Logout</a>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
 <div class="stat-grid animate-in">
     <div class="stat-card">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon"><i data-lucide="users"></i></div>
         <div class="stat-value">{{ stats.total_users }}</div>
         <div class="stat-label">Total Users</div>
     </div>
     <div class="stat-card accent-green">
-        <div class="stat-icon">👨‍💻</div>
+        <div class="stat-icon"><i data-lucide="user-round"></i></div>
         <div class="stat-value">{{ stats.total_candidates }}</div>
         <div class="stat-label">Candidates</div>
     </div>
     <div class="stat-card accent-orange">
-        <div class="stat-icon">🏢</div>
+        <div class="stat-icon"><i data-lucide="building-2"></i></div>
         <div class="stat-value">{{ stats.total_recruiters }}</div>
         <div class="stat-label">Recruiters</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">💼</div>
+        <div class="stat-icon"><i data-lucide="briefcase"></i></div>
         <div class="stat-value">{{ stats.total_jobs }}</div>
         <div class="stat-label">Total Jobs ({{ stats.active_jobs }} active)</div>
     </div>
@@ -44,7 +44,7 @@
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
     <!-- Application Stats -->
     <div class="card animate-in animate-in-delay-1">
-        <div class="card-header"><h3 class="card-title">📋 Applications</h3></div>
+        <div class="card-header"><h3 class="card-title"><i data-lucide="clipboard-list"></i> Applications</h3></div>
         <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
             <div style="text-align:center;">
                 <div style="font-size:2rem; font-weight:800;">{{ stats.total_applications }}</div>
@@ -69,7 +69,7 @@
 
     <!-- Job Categories -->
     <div class="card animate-in animate-in-delay-2">
-        <div class="card-header"><h3 class="card-title">📂 Job Categories</h3></div>
+        <div class="card-header"><h3 class="card-title"><i data-lucide="folder"></i> Job Categories</h3></div>
         {% if category_stats %}
         {% for cat, count in category_stats.items() %}
         <div class="flex justify-between items-center mb-2">
@@ -87,7 +87,7 @@
 {% if recent_users %}
 <div class="card mt-6 animate-in animate-in-delay-3">
     <div class="card-header">
-        <h3 class="card-title">👥 Recent Users</h3>
+        <h3 class="card-title"><i data-lucide="users"></i> Recent Users</h3>
         <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary btn-sm">View All</a>
     </div>
     <div class="table-container">

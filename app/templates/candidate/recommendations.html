@@ -1,27 +1,27 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Job Recommendations{% endblock %}
-{% block page_title %}🎯 Job Recommendations{% endblock %}
+{% block page_title %}Job Recommendations{% endblock %}
 {% block page_subtitle %}AI-matched jobs based on your resume analysis.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
-    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link active"><span class="icon">🎯</span> Recommendations</a>
-    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
-    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon"><i data-lucide="file-text"></i></span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link active"><span class="icon"><i data-lucide="target"></i></span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon"><i data-lucide="clipboard-list"></i></span> Applications</a>
 </div>
 <div class="sidebar-section">
     <div class="sidebar-section-title">Account</div>
-    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link"><span class="icon">👤</span> Profile</a>
+    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link"><span class="icon"><i data-lucide="circle-user"></i></span> Profile</a>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
 <div class="flex justify-between items-center mb-6">
     <span class="text-muted">{{ recommendations|length }} recommendations</span>
-    <a href="{{ url_for('candidate.refresh_recommendations') }}" class="btn btn-secondary btn-sm">🔄 Refresh</a>
+    <a href="{{ url_for('candidate.refresh_recommendations') }}" class="btn btn-secondary btn-sm"><i data-lucide="refresh-cw"></i> Refresh</a>
 </div>
 
 {% if recommendations %}
@@ -32,9 +32,9 @@
                 <h3 style="margin-bottom:0.25rem;">{{ rec.job.title }}</h3>
                 <p style="color:var(--color-accent-primary); font-size:var(--font-size-sm);">{{ rec.job.recruiter.company_name }}</p>
                 <div class="job-meta mt-4">
-                    {% if rec.job.location %}<span class="meta-item">📍 {{ rec.job.location }}</span>{% endif %}
-                    {% if rec.job.job_type %}<span class="meta-item">💼 {{ rec.job.job_type }}</span>{% endif %}
-                    {% if rec.job.salary_range %}<span class="meta-item">💰 {{ rec.job.salary_range }}</span>{% endif %}
+                    {% if rec.job.location %}<span class="meta-item"><i data-lucide="map-pin"></i> {{ rec.job.location }}</span>{% endif %}
+                    {% if rec.job.job_type %}<span class="meta-item"><i data-lucide="briefcase"></i> {{ rec.job.job_type }}</span>{% endif %}
+                    {% if rec.job.salary_range %}<span class="meta-item"><i data-lucide="wallet"></i> {{ rec.job.salary_range }}</span>{% endif %}
                 </div>
             </div>
             <div style="text-align:center; min-width:100px;">
@@ -66,7 +66,7 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
             {% if rec.strengths %}
             <div>
-                <div class="text-xs font-semibold" style="color:var(--color-accent-cyan); margin-bottom:0.5rem;">✅ Strengths</div>
+                <div class="text-xs font-semibold" style="color:var(--color-accent-cyan); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.35rem;"><i data-lucide="check-circle-2"></i> Strengths</div>
                 {% for s in rec.strengths %}
                 <div class="text-xs text-muted">• {{ s }}</div>
                 {% endfor %}
@@ -74,7 +74,7 @@
             {% endif %}
             {% if rec.improvements %}
             <div>
-                <div class="text-xs font-semibold" style="color:var(--color-accent-orange); margin-bottom:0.5rem;">💡 Improvements</div>
+                <div class="text-xs font-semibold" style="color:var(--color-accent-orange); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.35rem;"><i data-lucide="lightbulb"></i> Improvements</div>
                 {% for i in rec.improvements %}
                 <div class="text-xs text-muted">• {{ i }}</div>
                 {% endfor %}
@@ -91,7 +91,7 @@
 {% else %}
 <div class="card">
     <div class="empty-state">
-        <div class="icon">🎯</div>
+        <div class="icon"><i data-lucide="target"></i></div>
         <div class="title">No Recommendations Yet</div>
         <div class="description">Upload your resume to get AI-powered job recommendations based on your skills and experience.</div>
         <a href="{{ url_for('candidate.resume') }}" class="btn btn-primary">Upload Resume</a>

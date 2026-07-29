@@ -20,7 +20,7 @@
     <!-- Navbar -->
     <nav class="navbar" id="main-navbar">
         <a href="{{ url_for('main.index') }}" class="navbar-brand">
-            <span class="brand-icon">⚡</span>
+            <span class="brand-icon"><i data-lucide="zap"></i></span>
             <span>RBJRS</span>
         </a>
 
@@ -32,7 +32,7 @@
                         {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
                     </div>
                     <span class="user-name">{{ current_user.full_name }}</span>
-                    <a href="{{ url_for('auth.logout') }}" class="nav-link" title="Logout">🚪</a>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link" title="Logout" aria-label="Logout"><i data-lucide="log-out"></i></a>
                 </div>
             {% else %}
                 <a href="{{ url_for('auth.login') }}" class="nav-link">Sign In</a>
@@ -53,7 +53,7 @@
             {% for category, message in messages %}
             <div class="alert alert-{{ category }} animate-in" role="alert">
                 <span>{{ message }}</span>
-                <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+                <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss"><i data-lucide="x"></i></button>
             </div>
             {% endfor %}
         </div>
@@ -64,6 +64,10 @@
     {% block content %}{% endblock %}
 
     {% endblock %}
+
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@1.27.0/dist/umd/lucide.min.js"></script>
+    <script>window.lucide && lucide.createIcons();</script>
 
     <!-- Core JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

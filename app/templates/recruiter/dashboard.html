@@ -1,42 +1,42 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Recruiter Dashboard{% endblock %}
-{% block page_title %}Welcome, {{ current_user.first_name }}! 🏢{% endblock %}
+{% block page_title %}Welcome, {{ current_user.first_name }}!{% endblock %}
 {% block page_subtitle %}{{ recruiter.company_name }} — Manage your job postings and candidates.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
-    <a href="{{ url_for('recruiter.create_job_view') }}" class="sidebar-link"><span class="icon">➕</span> Post a Job</a>
-    <a href="{{ url_for('recruiter.notifications') }}" class="sidebar-link"><span class="icon">🔔</span> Notifications {% if unread_count %}<span class="badge badge-danger" style="font-size:0.65rem; padding:0.15rem 0.4rem; margin-left:0.25rem;">{{ unread_count }}</span>{% endif %}</a>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link active"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> My Jobs</a>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="sidebar-link"><span class="icon"><i data-lucide="plus-circle"></i></span> Post a Job</a>
+    <a href="{{ url_for('recruiter.notifications') }}" class="sidebar-link"><span class="icon"><i data-lucide="bell"></i></span> Notifications {% if unread_count %}<span class="badge badge-danger" style="font-size:0.65rem; padding:0.15rem 0.4rem; margin-left:0.25rem;">{{ unread_count }}</span>{% endif %}</a>
 </div>
 <div class="sidebar-section">
     <div class="sidebar-section-title">Account</div>
-    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
-    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link"><span class="icon"><i data-lucide="building-2"></i></span> Company Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon"><i data-lucide="log-out"></i></span> Logout</a>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
 <div class="stat-grid animate-in">
     <div class="stat-card">
-        <div class="stat-icon">💼</div>
+        <div class="stat-icon"><i data-lucide="briefcase"></i></div>
         <div class="stat-value">{{ total_jobs }}</div>
         <div class="stat-label">Total Jobs</div>
     </div>
     <div class="stat-card accent-green">
-        <div class="stat-icon">✅</div>
+        <div class="stat-icon"><i data-lucide="check-circle-2"></i></div>
         <div class="stat-value">{{ active_jobs }}</div>
         <div class="stat-label">Active Jobs</div>
     </div>
     <div class="stat-card accent-orange">
-        <div class="stat-icon">📋</div>
+        <div class="stat-icon"><i data-lucide="clipboard-list"></i></div>
         <div class="stat-value">{{ total_applications }}</div>
         <div class="stat-label">Total Applications</div>
     </div>
     <div class="stat-card" style="border-color:var(--color-accent-cyan);">
-        <div class="stat-icon">🔔</div>
+        <div class="stat-icon"><i data-lucide="bell"></i></div>
         <div class="stat-value">{{ unread_count }}</div>
         <div class="stat-label">Unread Notifications</div>
     </div>
@@ -46,12 +46,12 @@
 {% if recent_notifications %}
 <div class="card mb-6 animate-in animate-in-delay-1">
     <div class="card-header">
-        <h3 class="card-title">🔔 Recent Notifications</h3>
+        <h3 class="card-title"><i data-lucide="bell"></i> Recent Notifications</h3>
         <a href="{{ url_for('recruiter.notifications') }}" class="btn btn-outline btn-sm">View All</a>
     </div>
     {% for notif in recent_notifications[:3] %}
     <div style="padding:0.75rem 0; border-bottom:1px solid var(--color-border); {{ 'font-weight:600;' if not notif.is_read else 'opacity:0.7;' }}">
-        <p style="margin:0; font-size:0.875rem;">{{ '🔵' if not notif.is_read else '⚪' }} {{ notif.message }}</p>
+        <p style="margin:0; font-size:0.875rem;"><span class="notif-dot {{ '' if not notif.is_read else 'read' }}"></span> {{ notif.message }}</p>
         <span class="text-xs text-muted">{{ notif.created_at.strftime('%b %d, %Y at %I:%M %p') if notif.created_at else '' }}</span>
     </div>
     {% endfor %}
@@ -60,7 +60,7 @@
 
 <div class="flex justify-between items-center mb-6 animate-in animate-in-delay-1">
     <h3>Recent Job Postings</h3>
-    <a href="{{ url_for('recruiter.create_job_view') }}" class="btn btn-primary btn-sm">➕ Post New Job</a>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="btn btn-primary btn-sm"><i data-lucide="plus"></i> Post New Job</a>
 </div>
 
 {% if jobs %}
@@ -70,9 +70,9 @@
         <div>
             <h4 style="margin-bottom:0.25rem;">{{ job.title }}</h4>
             <div class="flex gap-3" style="flex-wrap:wrap;">
-                {% if job.location %}<span class="text-sm text-muted">📍 {{ job.location }}</span>{% endif %}
-                <span class="text-sm text-muted">📋 {{ job.applicant_count }} applicants</span>
-                {% if job.salary_min or job.salary_max %}<span class="text-sm text-muted">💰 {{ job.salary_display }}</span>{% endif %}
+                {% if job.location %}<span class="meta-item"><i data-lucide="map-pin"></i> {{ job.location }}</span>{% endif %}
+                <span class="meta-item"><i data-lucide="users"></i> {{ job.applicant_count }} applicants</span>
+                {% if job.salary_min or job.salary_max %}<span class="meta-item"><i data-lucide="wallet"></i> {{ job.salary_display }}</span>{% endif %}
                 <span class="badge badge-{{ 'success' if job.is_active else 'neutral' }}">{{ 'Active' if job.is_active else 'Inactive' }}</span>
             </div>
         </div>
@@ -85,7 +85,7 @@
 {% endfor %}
 {% else %}
 <div class="card"><div class="empty-state">
-    <div class="icon">💼</div>
+    <div class="icon"><i data-lucide="briefcase"></i></div>
     <div class="title">No Jobs Posted</div>
     <div class="description">Create your first job posting to start receiving applications from matched candidates.</div>
     <a href="{{ url_for('recruiter.create_job_view') }}" class="btn btn-primary">Post a Job</a>

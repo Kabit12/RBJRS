@@ -1,31 +1,31 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Analytics{% endblock %}
-{% block page_title %}📈 Platform Analytics{% endblock %}
+{% block page_title %}Platform Analytics{% endblock %}
 {% block page_subtitle %}Insights and reports on platform usage.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Administration</div>
-    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link"><span class="icon">👥</span> Users</a>
-    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Jobs</a>
-    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link active"><span class="icon">📈</span> Analytics</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link"><span class="icon"><i data-lucide="users"></i></span> Users</a>
+    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Jobs</a>
+    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link active"><span class="icon"><i data-lucide="trending-up"></i></span> Analytics</a>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
 <!-- Overview Stats -->
 <div class="stat-grid animate-in">
-    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value">{{ stats.total_users }}</div><div class="stat-label">Users</div></div>
-    <div class="stat-card accent-green"><div class="stat-icon">💼</div><div class="stat-value">{{ stats.active_jobs }}</div><div class="stat-label">Active Jobs</div></div>
-    <div class="stat-card accent-orange"><div class="stat-icon">📋</div><div class="stat-value">{{ stats.total_applications }}</div><div class="stat-label">Applications</div></div>
-    <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-value">{{ stats.total_resumes }}</div><div class="stat-label">Resumes</div></div>
+    <div class="stat-card"><div class="stat-icon"><i data-lucide="users"></i></div><div class="stat-value">{{ stats.total_users }}</div><div class="stat-label">Users</div></div>
+    <div class="stat-card accent-green"><div class="stat-icon"><i data-lucide="briefcase"></i></div><div class="stat-value">{{ stats.active_jobs }}</div><div class="stat-label">Active Jobs</div></div>
+    <div class="stat-card accent-orange"><div class="stat-icon"><i data-lucide="clipboard-list"></i></div><div class="stat-value">{{ stats.total_applications }}</div><div class="stat-label">Applications</div></div>
+    <div class="stat-card"><div class="stat-icon"><i data-lucide="file-text"></i></div><div class="stat-value">{{ stats.total_resumes }}</div><div class="stat-label">Resumes</div></div>
 </div>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
     <!-- User Breakdown -->
     <div class="card animate-in animate-in-delay-1">
-        <div class="card-header"><h3 class="card-title">👥 User Distribution</h3></div>
+        <div class="card-header"><h3 class="card-title"><i data-lucide="users"></i> User Distribution</h3></div>
         <div class="mb-4">
             <div class="flex justify-between items-center mb-2"><span class="text-sm">Candidates</span><span class="font-semibold">{{ stats.total_candidates }}</span></div>
             <div class="progress-bar-container"><div class="progress-bar-fill" style="width:{{ (stats.total_candidates / stats.total_users * 100) if stats.total_users > 0 else 0 }}%"></div></div>
@@ -38,7 +38,7 @@
 
     <!-- Application Breakdown -->
     <div class="card animate-in animate-in-delay-2">
-        <div class="card-header"><h3 class="card-title">📋 Application Status</h3></div>
+        <div class="card-header"><h3 class="card-title"><i data-lucide="clipboard-list"></i> Application Status</h3></div>
         {% if app_stats %}
         {% for status, count in app_stats.items() %}
         <div class="flex justify-between items-center mb-3">
@@ -54,7 +54,7 @@
 
 <!-- Category Distribution -->
 <div class="card mt-6 animate-in animate-in-delay-3">
-    <div class="card-header"><h3 class="card-title">📂 Job Category Distribution</h3></div>
+    <div class="card-header"><h3 class="card-title"><i data-lucide="folder"></i> Job Category Distribution</h3></div>
     {% if category_stats %}
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">
         {% for cat, count in category_stats.items() %}

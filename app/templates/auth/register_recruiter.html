@@ -5,7 +5,7 @@
 <div class="auth-page">
     <div class="auth-card wide animate-in">
         <div class="auth-header">
-            <div class="logo">🏢</div>
+            <div class="logo"><i data-lucide="building-2"></i></div>
             <h1>Create Recruiter Account</h1>
             <p>Find the best-matched candidates for your jobs</p>
         </div>
@@ -15,7 +15,7 @@
                 {% for category, message in messages %}
                 <div class="alert alert-{{ category }}">
                     <span>{{ message }}</span>
-                    <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+                    <button class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss"><i data-lucide="x"></i></button>
                 </div>
                 {% endfor %}
             {% endif %}

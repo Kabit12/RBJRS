@@ -1,21 +1,21 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Dashboard{% endblock %}
-{% block page_title %}Welcome back, {{ current_user.first_name }}! 👋{% endblock %}
+{% block page_title %}Welcome back, {{ current_user.first_name }}!{% endblock %}
 {% block page_subtitle %}Your candidate dashboard — track your resume, recommendations, and applications.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
-    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
-    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
-    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link active"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon"><i data-lucide="file-text"></i></span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon"><i data-lucide="target"></i></span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon"><i data-lucide="clipboard-list"></i></span> Applications</a>
 </div>
 <div class="sidebar-section">
     <div class="sidebar-section-title">Account</div>
-    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link"><span class="icon">👤</span> Profile</a>
-    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+    <a href="{{ url_for('candidate.profile') }}" class="sidebar-link"><span class="icon"><i data-lucide="circle-user"></i></span> Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon"><i data-lucide="log-out"></i></span> Logout</a>
 </div>
 {% endblock %}
 
@@ -23,22 +23,22 @@
 <!-- Stats Cards -->
 <div class="stat-grid animate-in">
     <div class="stat-card">
-        <div class="stat-icon">📄</div>
+        <div class="stat-icon"><i data-lucide="file-text"></i></div>
         <div class="stat-value">{{ 1 if active_resume else 0 }}</div>
         <div class="stat-label">Active Resume</div>
     </div>
     <div class="stat-card accent-green">
-        <div class="stat-icon">🎯</div>
+        <div class="stat-icon"><i data-lucide="target"></i></div>
         <div class="stat-value">{{ recommendations|length }}</div>
         <div class="stat-label">Job Matches</div>
     </div>
     <div class="stat-card accent-orange">
-        <div class="stat-icon">📋</div>
+        <div class="stat-icon"><i data-lucide="clipboard-list"></i></div>
         <div class="stat-value">{{ recent_applications|length }}</div>
         <div class="stat-label">Applications</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">📂</div>
+        <div class="stat-icon"><i data-lucide="folder"></i></div>
         <div class="stat-value">{{ active_resume.classified_category or 'N/A' if active_resume else 'N/A' }}</div>
         <div class="stat-label">Resume Category</div>
     </div>
@@ -48,7 +48,7 @@
 <!-- No Resume Uploaded -->
 <div class="card animate-in animate-in-delay-1">
     <div class="empty-state">
-        <div class="icon">📄</div>
+        <div class="icon"><i data-lucide="file-text"></i></div>
         <div class="title">Upload Your Resume</div>
         <div class="description">Get started by uploading your resume. Our AI will analyze it and recommend the best matching jobs for your skills and experience.</div>
         <a href="{{ url_for('candidate.resume') }}" class="btn btn-primary btn-lg">Upload Resume</a>
@@ -58,7 +58,7 @@
 <!-- Resume Summary -->
 <div class="card mb-6 animate-in animate-in-delay-1">
     <div class="card-header">
-        <h3 class="card-title">📄 Active Resume</h3>
+        <h3 class="card-title"><i data-lucide="file-text"></i> Active Resume</h3>
         <a href="{{ url_for('candidate.resume') }}" class="btn btn-secondary btn-sm">Manage</a>
     </div>
     <div class="card-body">
@@ -76,7 +76,7 @@
 {% if recommendations %}
 <div class="card mb-6 animate-in animate-in-delay-2">
     <div class="card-header">
-        <h3 class="card-title">🎯 Top Job Matches</h3>
+        <h3 class="card-title"><i data-lucide="target"></i> Top Job Matches</h3>
         <a href="{{ url_for('candidate.recommendations') }}" class="btn btn-secondary btn-sm">View All</a>
     </div>
     <div class="card-body">
@@ -93,8 +93,8 @@
                     </div>
                 </div>
                 <div class="job-meta">
-                    {% if rec.job.location %}<span class="meta-item">📍 {{ rec.job.location }}</span>{% endif %}
-                    {% if rec.job.job_type %}<span class="meta-item">💼 {{ rec.job.job_type }}</span>{% endif %}
+                    {% if rec.job.location %}<span class="meta-item"><i data-lucide="map-pin"></i> {{ rec.job.location }}</span>{% endif %}
+                    {% if rec.job.job_type %}<span class="meta-item"><i data-lucide="briefcase"></i> {{ rec.job.job_type }}</span>{% endif %}
                 </div>
             </div>
         </a>
@@ -108,7 +108,7 @@
 {% if recent_applications %}
 <div class="card animate-in animate-in-delay-3">
     <div class="card-header">
-        <h3 class="card-title">📋 Recent Applications</h3>
+        <h3 class="card-title"><i data-lucide="clipboard-list"></i> Recent Applications</h3>
         <a href="{{ url_for('candidate.applications') }}" class="btn btn-secondary btn-sm">View All</a>
     </div>
     <div class="table-container">

@@ -1,15 +1,15 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Manage Users{% endblock %}
-{% block page_title %}👥 User Management{% endblock %}
+{% block page_title %}User Management{% endblock %}
 {% block page_subtitle %}Manage all platform users. Approve or disapprove recruiters.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Administration</div>
-    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link active"><span class="icon">👥</span> Users</a>
-    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Jobs</a>
-    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link"><span class="icon">📈</span> Analytics</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-link active"><span class="icon"><i data-lucide="users"></i></span> Users</a>
+    <a href="{{ url_for('admin.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Jobs</a>
+    <a href="{{ url_for('admin.analytics') }}" class="sidebar-link"><span class="icon"><i data-lucide="trending-up"></i></span> Analytics</a>
 </div>
 {% endblock %}
 
@@ -35,9 +35,9 @@
                     <span class="badge badge-{{ 'success' if user.is_active else 'neutral' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span>
                     {% if user.role == 'recruiter' and user.recruiter_profile %}
                         {% if user.recruiter_profile.is_approved %}
-                            <span class="badge badge-success">✅ Approved</span>
+                            <span class="badge badge-success"><i data-lucide="check-circle-2"></i> Approved</span>
                         {% else %}
-                            <span class="badge badge-danger">⏳ Pending</span>
+                            <span class="badge badge-danger"><i data-lucide="clock"></i> Pending</span>
                         {% endif %}
                     {% endif %}
                 </td>
@@ -49,12 +49,12 @@
                             {% if not user.recruiter_profile.is_approved %}
                             <form method="POST" action="{{ url_for('admin.approve_recruiter', user_id=user.id) }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-success btn-sm">✅ Approve</button>
+                                <button type="submit" class="btn btn-success btn-sm"><i data-lucide="check"></i> Approve</button>
                             </form>
                             {% else %}
                             <form method="POST" action="{{ url_for('admin.disapprove_recruiter', user_id=user.id) }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-warning btn-sm">❌ Disapprove</button>
+                                <button type="submit" class="btn btn-warning btn-sm"><i data-lucide="user-x"></i> Disapprove</button>
                             </form>
                             {% endif %}
                         {% endif %}
