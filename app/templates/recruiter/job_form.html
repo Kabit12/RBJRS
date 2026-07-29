@@ -1,14 +1,14 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}{{ 'Edit Job' if is_edit else 'Post New Job' }}{% endblock %}
-{% block page_title %}{{ '✏️ Edit Job' if is_edit else '➕ Post New Job' }}{% endblock %}
+{% block page_title %}{{ 'Edit Job' if is_edit else 'Post New Job' }}{% endblock %}
 {% block page_subtitle %}{{ 'Update your job listing.' if is_edit else 'Create a new job posting to find matched candidates.' }}{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
-    <a href="{{ url_for('recruiter.create_job_view') }}" class="sidebar-link {{ 'active' if not is_edit else '' }}"><span class="icon">➕</span> Post a Job</a>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> My Jobs</a>
+    <a href="{{ url_for('recruiter.create_job_view') }}" class="sidebar-link {{ 'active' if not is_edit else '' }}"><span class="icon"><i data-lucide="plus-circle"></i></span> Post a Job</a>
 </div>
 {% endblock %}
 

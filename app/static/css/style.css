@@ -1322,3 +1322,187 @@ textarea.form-control {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* ===== ICON SYSTEM (Lucide) =====
+ * Icons render as inline SVG via Lucide. Everything inherits `currentColor`
+ * and a single stroke width so the whole app reads as one consistent set.
+ */
+svg.lucide {
+    width: 1em;
+    height: 1em;
+    stroke-width: 1.9;
+    flex: 0 0 auto;
+    vertical-align: -0.14em;
+    pointer-events: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Keep an empty gap while the icon font loads instead of a broken glyph */
+i[data-lucide] {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+}
+
+/* Brand marks (white icon on gradient tile) */
+.navbar-brand .brand-icon svg.lucide,
+.landing-nav .logo-icon svg.lucide {
+    width: 20px;
+    height: 20px;
+    color: #fff;
+}
+
+/* Sidebar navigation */
+.sidebar-link .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar-link .icon svg.lucide {
+    width: 19px;
+    height: 19px;
+}
+
+/* Card / section headings */
+.card-title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+.card-title svg.lucide {
+    width: 18px;
+    height: 18px;
+    color: var(--color-accent-primary);
+}
+
+/* Stat cards */
+.stat-card .stat-icon svg.lucide {
+    width: 24px;
+    height: 24px;
+    color: var(--color-accent-primary);
+}
+.stat-card.accent-green .stat-icon svg.lucide { color: var(--color-accent-cyan); }
+.stat-card.accent-orange .stat-icon svg.lucide { color: var(--color-accent-orange); }
+.stat-card.accent-red .stat-icon svg.lucide { color: var(--color-accent-red); }
+
+/* Inline meta rows (location, salary, job type…) */
+.job-meta .meta-item svg.lucide,
+.meta-item svg.lucide {
+    width: 15px;
+    height: 15px;
+    color: var(--color-text-muted);
+}
+
+/* Empty states */
+.empty-state .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.35;
+}
+.empty-state .icon svg.lucide {
+    width: 56px;
+    height: 56px;
+    stroke-width: 1.4;
+}
+
+/* File upload */
+.file-upload-zone .upload-icon {
+    display: flex;
+    justify-content: center;
+    opacity: 1;
+}
+.file-upload-zone .upload-icon svg.lucide {
+    width: 40px;
+    height: 40px;
+    stroke-width: 1.5;
+    color: var(--color-accent-primary);
+    opacity: 0.85;
+}
+
+/* Auth logo tile */
+.auth-header .logo svg.lucide {
+    width: 28px;
+    height: 28px;
+    color: #fff;
+}
+
+/* Register role-choice cards */
+.register-choice-card .choice-icon {
+    display: flex;
+    justify-content: center;
+}
+.register-choice-card .choice-icon svg.lucide {
+    width: 34px;
+    height: 34px;
+    stroke-width: 1.6;
+    color: var(--color-accent-primary);
+}
+
+/* Icons sitting inside buttons/badges track the text size */
+.btn svg.lucide { width: 1.05em; height: 1.05em; }
+.badge svg.lucide { width: 0.95em; height: 0.95em; }
+
+/* Notification read/unread indicator (replaces 🔵/⚪) */
+.notif-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.16);
+    margin-right: var(--space-2);
+    vertical-align: middle;
+    flex: 0 0 auto;
+}
+.notif-dot.read {
+    background: var(--color-text-muted);
+    box-shadow: none;
+}
+
+/* ===== ACCESSIBILITY & FINISHING TOUCHES ===== */
+:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+.btn:focus-visible,
+.sidebar-link:focus-visible,
+.page-link:focus-visible {
+    outline-offset: 3px;
+}
+/* Inputs already show a focus ring; avoid doubling it up */
+.form-control:focus-visible { outline: none; }
+
+::selection {
+    background: rgba(102, 126, 234, 0.35);
+    color: #fff;
+}
+
+/* Slim, on-brand scrollbars */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+    background: rgba(102, 126, 234, 0.25);
+    border-radius: var(--radius-full);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(102, 126, 234, 0.42);
+    background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}

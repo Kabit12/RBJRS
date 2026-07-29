@@ -1,19 +1,19 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Notifications{% endblock %}
-{% block page_title %}🔔 Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
 {% block page_subtitle %}{{ unread_count }} unread notification{{ 's' if unread_count != 1 else '' }}{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
-    <a href="{{ url_for('recruiter.notifications') }}" class="sidebar-link active"><span class="icon">🔔</span> Notifications {% if unread_count %}<span class="badge badge-danger" style="font-size:0.65rem; padding:0.15rem 0.4rem; margin-left:0.25rem;">{{ unread_count }}</span>{% endif %}</a>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> My Jobs</a>
+    <a href="{{ url_for('recruiter.notifications') }}" class="sidebar-link active"><span class="icon"><i data-lucide="bell"></i></span> Notifications {% if unread_count %}<span class="badge badge-danger" style="font-size:0.65rem; padding:0.15rem 0.4rem; margin-left:0.25rem;">{{ unread_count }}</span>{% endif %}</a>
 </div>
 <div class="sidebar-section">
     <div class="sidebar-section-title">Account</div>
-    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
-    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link"><span class="icon"><i data-lucide="building-2"></i></span> Company Profile</a>
+    <a href="{{ url_for('auth.logout') }}" class="sidebar-link"><span class="icon"><i data-lucide="log-out"></i></span> Logout</a>
 </div>
 {% endblock %}
 
@@ -24,7 +24,7 @@
     {% if unread_count > 0 %}
     <form method="POST" action="{{ url_for('recruiter.mark_all_notifications_read') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-outline btn-sm">✅ Mark All as Read</button>
+        <button type="submit" class="btn btn-outline btn-sm"><i data-lucide="check"></i> Mark All as Read</button>
     </form>
     {% endif %}
 </div>
@@ -34,7 +34,7 @@
     <div class="flex justify-between items-center" style="gap:1rem;">
         <div>
             <p style="margin-bottom:0.25rem; {{ 'font-weight:600;' if not notif.is_read else '' }}">
-                {{ '🔵' if not notif.is_read else '⚪' }} {{ notif.message }}
+                <span class="notif-dot {{ '' if not notif.is_read else 'read' }}"></span> {{ notif.message }}
             </p>
             <span class="text-xs text-muted">{{ notif.created_at.strftime('%b %d, %Y at %I:%M %p') if notif.created_at else '' }}</span>
         </div>
@@ -52,7 +52,7 @@
 
 {% else %}
 <div class="card animate-in"><div class="empty-state">
-    <div class="icon">🔔</div>
+    <div class="icon"><i data-lucide="bell-off"></i></div>
     <div class="title">No Notifications</div>
     <div class="description">You're all caught up! Notifications will appear here when candidates apply for your jobs.</div>
 </div></div>

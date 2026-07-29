@@ -6,10 +6,10 @@
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
-    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
-    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon">📋</span> Applications</a>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon"><i data-lucide="target"></i></span> Recommendations</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link"><span class="icon"><i data-lucide="clipboard-list"></i></span> Applications</a>
 </div>
 {% endblock %}
 
@@ -21,7 +21,7 @@
             <div class="flex gap-4 mb-6" style="flex-wrap:wrap;">
                 {% if job.job_type %}<span class="badge badge-primary">{{ job.job_type }}</span>{% endif %}
                 {% if job.experience_level %}<span class="badge badge-neutral">{{ job.experience_level }}</span>{% endif %}
-                {% if job.salary_min or job.salary_max %}<span class="badge badge-success">💰 {{ job.salary_display }}</span>{% endif %}
+                {% if job.salary_min or job.salary_max %}<span class="badge badge-success"><i data-lucide="wallet"></i> {{ job.salary_display }}</span>{% endif %}
                 {% if job.classified_category %}<span class="badge badge-warning">{{ job.classified_category }}</span>{% endif %}
             </div>
             <h4 class="mb-4">Description</h4>
@@ -48,7 +48,7 @@
     <div>
         {% if recommendation %}
         <div class="card mb-6 animate-in animate-in-delay-1">
-            <h4 class="mb-4">🎯 Your Match Score</h4>
+            <h4 class="mb-4" style="display:flex; align-items:center; gap:0.5rem;"><i data-lucide="target"></i> Your Match Score</h4>
             <div class="text-center mb-4">
                 <div style="font-size:3rem; font-weight:800; color:{{ 'var(--color-accent-cyan)' if recommendation.overall_score >= 0.7 else ('var(--color-accent-yellow)' if recommendation.overall_score >= 0.4 else 'var(--color-accent-red)') }};">
                     {{ (recommendation.overall_score * 100)|round(1) }}%
@@ -74,7 +74,7 @@
         <div class="card animate-in animate-in-delay-2">
             {% if existing_application %}
             <div class="text-center">
-                <div style="font-size:2rem; margin-bottom:0.5rem;">✅</div>
+                <div style="font-size:2rem; margin-bottom:0.5rem; line-height:1;"><i data-lucide="check-circle-2"></i></div>
                 <p class="font-semibold">Application Submitted</p>
                 <p class="text-sm text-muted">Status: <span class="badge badge-{{ 'success' if existing_application.status == 'accepted' else 'primary' }}">{{ existing_application.status_display }}</span></p>
             </div>

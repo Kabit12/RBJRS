@@ -5,20 +5,20 @@
 <div class="auth-page">
     <div class="auth-card wide animate-in">
         <div class="auth-header">
-            <div class="logo">⚡</div>
+            <div class="logo"><i data-lucide="zap"></i></div>
             <h1>Join RBJRS</h1>
             <p>Choose your account type to get started</p>
         </div>
 
         <div class="register-choices">
             <a href="{{ url_for('auth.register_candidate_view') }}" class="register-choice-card">
-                <div class="choice-icon">👨‍💻</div>
+                <div class="choice-icon"><i data-lucide="user-round"></i></div>
                 <h3>I'm a Candidate</h3>
                 <p>Upload your resume and discover jobs that match your skills</p>
             </a>
 
             <a href="{{ url_for('auth.register_recruiter_view') }}" class="register-choice-card">
-                <div class="choice-icon">🏢</div>
+                <div class="choice-icon"><i data-lucide="building-2"></i></div>
                 <h3>I'm a Recruiter</h3>
                 <p>Post jobs and find the best-matched candidates automatically</p>
             </a>

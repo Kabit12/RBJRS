@@ -1,16 +1,16 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}My Applications{% endblock %}
-{% block page_title %}📋 My Applications{% endblock %}
+{% block page_title %}My Applications{% endblock %}
 {% block page_subtitle %}Track all your job applications.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon">📄</span> My Resume</a>
-    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon">🎯</span> Recommendations</a>
-    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon">💼</span> Browse Jobs</a>
-    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link active"><span class="icon">📋</span> Applications</a>
+    <a href="{{ url_for('candidate.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('candidate.resume') }}" class="sidebar-link"><span class="icon"><i data-lucide="file-text"></i></span> My Resume</a>
+    <a href="{{ url_for('candidate.recommendations') }}" class="sidebar-link"><span class="icon"><i data-lucide="target"></i></span> Recommendations</a>
+    <a href="{{ url_for('candidate.browse_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> Browse Jobs</a>
+    <a href="{{ url_for('candidate.applications') }}" class="sidebar-link active"><span class="icon"><i data-lucide="clipboard-list"></i></span> Applications</a>
 </div>
 {% endblock %}
 
@@ -35,7 +35,7 @@
 </div>
 {% else %}
 <div class="card"><div class="empty-state">
-    <div class="icon">📋</div>
+    <div class="icon"><i data-lucide="clipboard-list"></i></div>
     <div class="title">No Applications Yet</div>
     <div class="description">You haven't applied for any jobs yet. Browse jobs and start applying!</div>
     <a href="{{ url_for('candidate.browse_jobs') }}" class="btn btn-primary">Browse Jobs</a>

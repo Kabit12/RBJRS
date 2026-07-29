@@ -1,13 +1,13 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Applicants — {{ job.title }}{% endblock %}
-{% block page_title %}📋 Applicants for "{{ job.title }}"{% endblock %}
+{% block page_title %}Applicants for "{{ job.title }}"{% endblock %}
 {% block page_subtitle %}{{ applications|length }} applications received. Candidates ranked by AI match score.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> My Jobs</a>
 </div>
 {% endblock %}
 
@@ -31,17 +31,17 @@
                     <td class="text-muted text-sm">{{ app.applied_at.strftime('%b %d, %Y') if app.applied_at else 'N/A' }}</td>
                     <td>
                         {% if app.resume_id or (app.candidate and app.candidate.active_resume) %}
-                        <a href="{{ url_for('recruiter.view_applicant_resume', app_id=app.id) }}" class="btn btn-outline btn-sm" target="_blank" title="View applicant's CV">📄 View CV</a>
+                        <a href="{{ url_for('recruiter.view_applicant_resume', app_id=app.id) }}" class="btn btn-outline btn-sm" target="_blank" title="View applicant's CV"><i data-lucide="file-text"></i> View CV</a>
                         {% else %}
                         <span class="text-muted text-xs">No CV</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if app.cover_letter_file %}
-                        <a href="{{ url_for('recruiter.view_cover_letter_file', app_id=app.id) }}" class="btn btn-outline btn-sm" target="_blank" title="View cover letter file">📎 File</a>
+                        <a href="{{ url_for('recruiter.view_cover_letter_file', app_id=app.id) }}" class="btn btn-outline btn-sm" target="_blank" title="View cover letter file"><i data-lucide="paperclip"></i> File</a>
                         {% endif %}
                         {% if app.cover_letter %}
-                        <span class="text-xs text-muted" title="{{ app.cover_letter }}">📝 Text</span>
+                        <span class="text-xs text-muted" title="{{ app.cover_letter }}"><i data-lucide="notebook-pen"></i> Text</span>
                         {% endif %}
                         {% if not app.cover_letter_file and not app.cover_letter %}
                         <span class="text-muted text-xs">None</span>
@@ -68,7 +68,7 @@
 </div>
 {% else %}
 <div class="card mb-6 animate-in"><div class="empty-state">
-    <div class="icon">📋</div><div class="title">No Applications Yet</div>
+    <div class="icon"><i data-lucide="clipboard-list"></i></div><div class="title">No Applications Yet</div>
     <div class="description">No candidates have applied for this position yet.</div>
 </div></div>
 {% endif %}
@@ -76,7 +76,7 @@
 <!-- AI-Ranked Candidates -->
 {% if ranked_candidates %}
 <div class="card animate-in animate-in-delay-1">
-    <div class="card-header"><h3 class="card-title">🤖 AI-Ranked Candidates</h3></div>
+    <div class="card-header"><h3 class="card-title"><i data-lucide="sparkles"></i> AI-Ranked Candidates</h3></div>
     <p class="text-sm text-muted mb-4">
         All candidates ranked by our <strong>built-in ML engine</strong> (Sentence-Transformer Embeddings + FAISS + Skill Matching).<br>
         <span class="text-xs">Scores are computed locally — no external API is used. The algorithm computes semantic similarity between resume text and job requirements, combined with skill coverage, education level, and work experience analysis.</span>

@@ -1,17 +1,17 @@
 {% extends "components/dashboard_base.html" %}
 {% block title %}Company Profile{% endblock %}
-{% block page_title %}🏢 Company Profile{% endblock %}
+{% block page_title %}Company Profile{% endblock %}
 {% block page_subtitle %}Manage your company information.{% endblock %}
 
 {% block sidebar_content %}
 <div class="sidebar-section">
     <div class="sidebar-section-title">Navigation</div>
-    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon">💼</span> My Jobs</a>
+    <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link"><span class="icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</a>
+    <a href="{{ url_for('recruiter.manage_jobs') }}" class="sidebar-link"><span class="icon"><i data-lucide="briefcase"></i></span> My Jobs</a>
 </div>
 <div class="sidebar-section">
     <div class="sidebar-section-title">Account</div>
-    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link active"><span class="icon">🏢</span> Company Profile</a>
+    <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link active"><span class="icon"><i data-lucide="building-2"></i></span> Company Profile</a>
 </div>
 {% endblock %}
 

@@ -185,8 +185,22 @@
         }
 
         .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            width: 56px;
+            height: 56px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.18);
+            color: #a9b6ff;
+            margin-bottom: 1.25rem;
+        }
+
+        .feature-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke-width: 2;
         }
 
         .feature-card h3 {
@@ -291,7 +305,7 @@
         <!-- Navigation -->
         <nav class="landing-nav">
             <div class="logo">
-                <span class="logo-icon">⚡</span>
+                <span class="logo-icon"><i data-lucide="zap"></i></span>
                 <span>RBJRS</span>
             </div>
             <div class="nav-links">
@@ -313,7 +327,7 @@
         <!-- Hero Content -->
         <div class="hero-content">
             <div>
-                <div class="hero-badge">🤖 Powered by Machine Learning & NLP</div>
+                <div class="hero-badge"><i data-lucide="sparkles"></i> Powered by Machine Learning &amp; NLP</div>
                 <h1 class="hero-title">
                     Find Your <span class="text-gradient">Perfect Job</span><br>
                     with AI Matching
@@ -323,7 +337,7 @@
                 </p>
                 <div class="hero-actions">
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
-                        Get Started Free →
+                        Get Started Free <i data-lucide="arrow-right"></i>
                     </a>
                     <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">
                         Sign In
@@ -339,32 +353,32 @@
         <div class="section-subtitle">Intelligent features that bridge the gap between candidates and opportunities.</div>
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">🧠</div>
+                <div class="feature-icon"><i data-lucide="brain-circuit"></i></div>
                 <h3>AI-Powered Matching</h3>
                 <p>Our recommendation engine uses TF-IDF vectorization, Cosine Similarity, and KNN algorithms to find the best job matches for your skills and experience.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">📄</div>
+                <div class="feature-icon"><i data-lucide="file-text"></i></div>
                 <h3>Smart Resume Parsing</h3>
                 <p>Upload your PDF or DOCX resume. Our NLP pipeline automatically extracts skills, education, experience, certifications, and projects from your resume.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🎯</div>
+                <div class="feature-icon"><i data-lucide="target"></i></div>
                 <h3>Job Fit Score</h3>
                 <p>Get a detailed breakdown of how well you match each job — skills, education, experience scores with strengths and improvement suggestions.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🏢</div>
+                <div class="feature-icon"><i data-lucide="building-2"></i></div>
                 <h3>Recruiter Dashboard</h3>
                 <p>Post jobs and see AI-ranked candidates automatically. View match scores and skill breakdowns to find the best talent quickly.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">📊</div>
+                <div class="feature-icon"><i data-lucide="bar-chart-3"></i></div>
                 <h3>Resume Classification</h3>
                 <p>Machine learning classifier automatically categorizes your resume into 25 job domains using a trained SVM model for precise matching.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔒</div>
+                <div class="feature-icon"><i data-lucide="shield-check"></i></div>
                 <h3>Secure Platform</h3>
                 <p>Built with enterprise-grade security — bcrypt password hashing, CSRF protection, input validation, and role-based access control.</p>
             </div>
@@ -403,13 +417,17 @@
     <section class="cta-section">
         <h2 style="font-size:2.5rem; font-weight:800; margin-bottom:1rem;">Ready to Find Your Match?</h2>
         <p style="color:#8b949e; margin-bottom:2rem; font-size:1.1rem;">Join RBJRS and let AI connect you with the right opportunities.</p>
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Create Free Account →</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Create Free Account <i data-lucide="arrow-right"></i></a>
     </section>
 
     <!-- Footer -->
     <footer class="landing-footer">
         <span>© 2025 RBJRS — Resume Based Job Recommendation System</span>
-        <span>Built with Flask, scikit-learn, NLTK & spaCy</span>
+        <span>Built with Flask, scikit-learn, NLTK &amp; spaCy</span>
     </footer>
+
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@1.27.0/dist/umd/lucide.min.js"></script>
+    <script>window.lucide && lucide.createIcons();</script>
 </body>
 </html>
